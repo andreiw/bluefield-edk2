@@ -29,6 +29,37 @@ UINT32 mEmmcRcaCount = 0;
 
 STATIC
 EFI_STATUS
+SwitchMode (
+  IN EFI_MMC_HOST_PROTOCOL *Host,
+  UINT32                    RCA,
+  IN UINTN                  SwitchCmd,
+  IN UINTN                  ByteIndex,
+  IN UINTN                  ByteValue
+  )
+{
+  EFI_STATUS Status;
+  UINT32     Argument;
+
+  if ((SwitchCmd & ~MMC_SWITCH_ACCESS_MASK) != 0)
+    return EFI_INVALID_PARAMETER;
+
+  if ((ByteIndex & ~MMC_SWITCH_INDEX_MASK) != 0)
+    return EFI_INVALID_PARAMETER;
+
+  if ((ByteValue & ~MMC_SWITCH_VALUE_MASK) != 0)
+    return EFI_INVALID_PARAMETER;
+
+  Argument = ((SwitchCmd << MMC_SWITCH_ACCESS_OFFSET) |
+              (ByteIndex << MMC_SWITCH_INDEX_OFFSET) |
+              (ByteValue << MMC_SWITCH_VALUE_OFFSET));
+
+  Status = Host->SendCommand (Host, MMC_CMD6, Argument);
+
+  return Status;
+}
+
+STATIC
+EFI_STATUS
 EFIAPI
 EmmcIdentificationMode (
   IN MMC_HOST_INSTANCE     *MmcHostInstance,
@@ -86,7 +117,7 @@ EmmcIdentificationMode (
   }
 
   // Fetch ECSD
-  Status = Host->SendCommand (Host, MMC_CMD8, RCA);
+  Status = Host->SendCommand (Host, MMC_CMD8, 0);
   if (EFI_ERROR (Status)) {
     DEBUG ((EFI_D_ERROR, "EmmcIdentificationMode(): ECSD fetch error, Status=%r.\n", Status));
   }
@@ -96,6 +127,15 @@ EmmcIdentificationMode (
     DEBUG ((EFI_D_ERROR, "EmmcIdentificationMode(): ECSD read error, Status=%r.\n", Status));
     return Status;
   }
+
+  // Set bus width to 8-bit.
+  //
+  // FIXME: We should check whether card supports it before we do it.
+  //
+  // FIXME: We could also verify that the bus is actually the proper
+  // width (see "bus testing procedure" in the spec).
+  SwitchMode (Host, RCA, MMC_SWITCH_ACCESS_WRITE_BYTE, EMMC_ECSD_BUS_WIDTH_OFFSET,
+              EMMC_ECSD_BUS_WIDTH_8_BIT);
 
   // Set up media
   Media->BlockSize = EMMC_CARD_SIZE; // 512-byte support is mandatory for eMMC cards
@@ -222,30 +262,32 @@ MmcIdentificationMode (
 
   // Send CMD1 to get OCR (MMC)
   // This command only valid for MMC and eMMC
-  Status = MmcHost->SendCommand (MmcHost, MMC_CMD1, EMMC_CMD1_CAPACITY_GREATER_THAN_2GB);
-  if (Status == EFI_SUCCESS) {
+  OcrResponse.Raw = 0;
+  while (!OcrResponse.Ocr.PowerUp) {
+    Status = MmcHost->SendCommand (MmcHost, MMC_CMD1, EMMC_CMD1_CAPACITY_GREATER_THAN_2GB);
+    if (EFI_ERROR (Status)) {
+      DEBUG ((EFI_D_ERROR, "MmcIdentificationMode() : Failed to send get OCR cmd, Status=%r.\n", Status));
+      return Status;
+    }
+
     Status = MmcHost->ReceiveResponse (MmcHost, MMC_RESPONSE_TYPE_OCR, (UINT32 *)&OcrResponse);
     if (EFI_ERROR (Status)) {
       DEBUG ((EFI_D_ERROR, "MmcIdentificationMode() : Failed to receive OCR, Status=%r.\n", Status));
       return Status;
     }
+  }
 
-    if (!OcrResponse.Ocr.PowerUp) {
-      DEBUG ((EFI_D_ERROR, "MmcIdentificationMode(MMC_CMD1): Card initialisation failure, Status=%r.\n", Status));
-      return EFI_DEVICE_ERROR;
-    }
-    OcrResponse.Ocr.PowerUp = 0;
-    if (OcrResponse.Raw == EMMC_CMD1_CAPACITY_GREATER_THAN_2GB) {
-      MmcHostInstance->CardInfo.OCRData.AccessMode = BIT1;
-    }
-    else {
-      MmcHostInstance->CardInfo.OCRData.AccessMode = 0x0;
-    }
-    // Check whether MMC or eMMC
-    if (OcrResponse.Raw == EMMC_CMD1_CAPACITY_GREATER_THAN_2GB ||
-        OcrResponse.Raw == EMMC_CMD1_CAPACITY_LESS_THAN_2GB) {
-      return EmmcIdentificationMode (MmcHostInstance, OcrResponse);
-    }
+  OcrResponse.Ocr.PowerUp = 0;
+  if (OcrResponse.Raw == EMMC_CMD1_CAPACITY_GREATER_THAN_2GB) {
+    MmcHostInstance->CardInfo.OCRData.AccessMode = BIT1;
+  }
+  else {
+    MmcHostInstance->CardInfo.OCRData.AccessMode = 0x0;
+  }
+  // Check whether MMC or eMMC
+  if (OcrResponse.Raw == EMMC_CMD1_CAPACITY_GREATER_THAN_2GB ||
+      OcrResponse.Raw == EMMC_CMD1_CAPACITY_LESS_THAN_2GB) {
+    return EmmcIdentificationMode (MmcHostInstance, OcrResponse);
   }
 
   // Are we using SDIO ?

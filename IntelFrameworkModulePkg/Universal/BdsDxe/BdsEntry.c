@@ -206,6 +206,18 @@ BdsBootDeviceSelect (
     BdsLibEnumerateAllBootOption (&BootLists);
   }
 
+  //
+  // At this stage, the 'BootLists' shouldn't be empty; it inlcudes all the
+  // boot options read from the BootOrder variable prior or after enumeration.
+  // Normally the BDS will apply the boot order which was selected in the boot
+  // option list.  But there is another alternative boot order which might be
+  // stored "somewhere" in the Management Controller (e.g: BMC).  This boot
+  // order can be read for boot option override.  If this Management
+  // Controller's boot order has a non-zero value the EFI will use it
+  // instead of its own boot order.
+  //
+  BdsLibBootOptionOverride (&BootLists, L"BootOrder");
+
   Link = BootLists.ForwardLink;
 
   //
@@ -278,12 +290,19 @@ BdsBootDeviceSelect (
     // Restore to original mode before launching boot option.
     //
     BdsSetConsoleMode (FALSE);
-    
+
+    //
+    // Check if there is any key press during the boot timeout.
+    //
+    Timeout = PcdGet16 (PcdPlatformBootTimeOut);
+    Status = ShowProgress(Timeout);
+
     //
     // All the driver options should have been processed since
     // now boot will be performed.
     //
-    Status = BdsLibBootViaBootOption (BootOption, BootOption->DevicePath, &ExitDataSize, &ExitData);
+    if (Status == EFI_TIMEOUT)
+      Status = BdsLibBootViaBootOption (BootOption, BootOption->DevicePath, &ExitDataSize, &ExitData);
     if (Status != EFI_SUCCESS) {
       //
       // Call platform action to indicate the boot fail

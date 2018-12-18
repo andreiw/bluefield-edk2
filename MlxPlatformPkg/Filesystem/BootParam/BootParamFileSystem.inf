@@ -1,0 +1,44 @@
+#/** @file
+#  Support a file system for passing boot parameters through the BlueField
+#  boot stream.
+#
+#  Copyright (c) 2016, Mellanox Technologies. All rights reserved.
+#
+#  This program and the accompanying materials are licensed and made available
+#  under the terms and conditions of the BSD License which accompanies this
+#  distribution.  The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+#**/
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = BootParamFileSystem
+  FILE_GUID                      = 1A9D88AF-40A4-42A7-8E48-BE0EEE6FA3D5
+  MODULE_TYPE                    = BASE
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = BootParamFileSystemLib
+
+[Sources]
+  BootParamFileSystem.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  ArmPlatformPkg/ArmPlatformPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  MemoryAllocationLib
+
+[Guids]
+  gEfiFileSystemInfoGuid
+
+[Protocols]
+  gEfiSimpleFileSystemProtocolGuid
+  gEfiDevicePathProtocolGuid
+
+[Pcd]
+  gArmPlatformTokenSpaceGuid.PcdBootParamPath

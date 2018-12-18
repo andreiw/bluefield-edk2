@@ -38,6 +38,7 @@
   Performance.c
   BdsConnect.c
   BdsMisc.c
+  BdsOverride.c
   BdsConsole.c
   BdsBoot.c
   InternalBdsLib.h

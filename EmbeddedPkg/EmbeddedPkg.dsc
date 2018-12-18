@@ -51,6 +51,7 @@
   DebugLib|MdePkg/Library/BaseDebugLibNull/BaseDebugLibNull.inf
 
 
+  StdLib|StdLib/LibC/StdLib/StdLib.inf
   BaseLib|MdePkg/Library/BaseLib/BaseLib.inf
   BaseMemoryLib|MdePkg/Library/BaseMemoryLib/BaseMemoryLib.inf
   PciLib|MdePkg/Library/BasePciLibCf8/BasePciLibCf8.inf

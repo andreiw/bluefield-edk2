@@ -1,0 +1,70 @@
+/** @file
+  SysConfig formset.
+
+Copyright (c) 2009 - 2010, Intel Corporation. All rights reserved.<BR>
+This program and the accompanying materials are licensed and made available
+under the terms and conditions of the BSD License which accompanies this
+distribution.  The full text of the license may be found at
+http://opensource.org/licenses/bsd-license.php
+
+THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+
+**/
+
+#include "BlueFieldSysConfig.h"
+
+formset
+  guid      = MLX_SYS_CONFIG_GUID,
+  title     = STRING_TOKEN(STR_SYS_CONFIG_TITLE),
+  help      = STRING_TOKEN(STR_SYS_CONFIG_TITLE_HELP),
+  classguid = EFI_HII_PLATFORM_SETUP_FORMSET_GUID,
+
+  varstore SYS_CONFIG, name = SysCfg, guid = MLX_SYS_CONFIG_GUID;
+
+  form formid = FORMID_SYS_CONFIG_FORM,
+    title = STRING_TOKEN(STR_FORM_TITLE);
+
+    // Password Setting
+    password  varid    = SysCfg.Password,
+              prompt   = STRING_TOKEN(STR_PASSWORD_CALLBACK_PROMPT),
+              help     = STRING_TOKEN(STR_PASSWORD_HELP),
+              flags    = INTERACTIVE,
+              key      = KEY_SET_PASSWORD,
+              minsize  = 0,
+              maxsize  = 20,
+    endpassword;
+
+    // Enable/Disable SMMU
+    checkbox varid = SysCfg.EnableSmmu,
+              prompt     = STRING_TOKEN(STR_SMMU_PROMPT),
+              help       = STRING_TOKEN(STR_SMMU_HELP),
+              flags      = CHECKBOX_DEFAULT | RESET_REQUIRED,
+              default    = FALSE,
+    endcheckbox;
+
+    // Enable/Disable ACPI SPMI
+    checkbox varid = SysCfg.DisableSpmi,
+              prompt     = STRING_TOKEN(STR_SPMI_PROMPT),
+              help       = STRING_TOKEN(STR_SPMI_HELP),
+              flags      = CHECKBOX_DEFAULT | RESET_REQUIRED,
+              default    = FALSE,
+    endcheckbox;
+
+    // Enable/Disable the second eMMC card (EMMC1)
+    checkbox varid = SysCfg.EnableEmmc1,
+              prompt     = STRING_TOKEN(STR_EMMC1_PROMPT),
+              help       = STRING_TOKEN(STR_EMMC1_HELP),
+              flags      = CHECKBOX_DEFAULT | RESET_REQUIRED,
+              default    = FALSE,
+    endcheckbox;
+
+    text
+      help   = STRING_TOKEN(STR_RESET_EFI_VAR_HELP),
+      text   = STRING_TOKEN(STR_RESET_EFI_VAR_PROMPT),
+      flags  = INTERACTIVE | RESET_REQUIRED,
+      key    = KEY_RESET_EFI_VAR;
+
+  endform;
+
+endformset;

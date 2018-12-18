@@ -1,0 +1,79 @@
+#/** @file
+#
+#  Copyright (c) 2017, Mellanox Technologies. All rights reserved.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD
+#  License which accompanies this distribution.  The full text of the license
+#  may be found at http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR
+#  IMPLIED.
+#
+#**/
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = I2cSmbusRuntimeDxe
+  FILE_GUID                      = 23427963-93e6-4c5a-b1fe-ff0d8314472b
+  MODULE_TYPE                    = DXE_RUNTIME_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = I2cSmbusInitialize
+
+[Sources.common]
+  I2cSmbusRuntimeDxe.c
+  I2cSmbusEeprom.c
+  I2cSmbusRtc.c
+  I2cSmbusIpmb.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  ArmPlatformPkg/ArmPlatformPkg.dec
+  ArmPkg/ArmPkg.dec
+  StdLib/StdLib.dec
+  MlxPlatformPkg/MlxPlatformPkg.dec
+
+[LibraryClasses]
+  IoLib
+  PcdLib
+  BaseLib
+  BaseMemoryLib
+  DebugLib
+  UefiLib
+  TimerLib
+  ArmLib
+  UefiDriverEntryPoint
+  UefiBootServicesTableLib
+  DxeServicesTableLib
+  UefiRuntimeLib
+
+[Guids]
+  gEfiEventVirtualAddressChangeGuid
+
+[Protocols]
+  gEfiSmbusHcProtocolGuid
+  gBluefieldEepromProtocolGuid
+  gBluefieldRtcProtocolGuid
+  gIpmiProtocolGuid
+
+[FixedPcd]
+  gMlxPlatformTokenSpaceGuid.PcdRshimBase
+
+[Pcd]
+  gMlxPlatformTokenSpaceGuid.PcdI2cSmbusBitmask
+  gMlxPlatformTokenSpaceGuid.PcdI2cSmbusFrequencyKhz
+  gMlxPlatformTokenSpaceGuid.PcdEepromStoreAddress
+  gMlxPlatformTokenSpaceGuid.PcdEepromStoreSize
+  gMlxPlatformTokenSpaceGuid.PcdEepromStorePageSize
+  gMlxPlatformTokenSpaceGuid.PcdEepromBusId
+  gMlxPlatformTokenSpaceGuid.PcdRtcAddress
+  gMlxPlatformTokenSpaceGuid.PcdRtcBusId
+  gMlxPlatformTokenSpaceGuid.PcdIpmbBmcAddress
+  gMlxPlatformTokenSpaceGuid.PcdIpmbSlaveAddress
+  gMlxPlatformTokenSpaceGuid.PcdIpmbBusId
+  gMlxPlatformTokenSpaceGuid.PcdIpmbRetryCnt
+
+[Depex]
+  TRUE

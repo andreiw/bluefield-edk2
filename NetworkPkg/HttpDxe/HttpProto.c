@@ -265,10 +265,8 @@ HttpCreateTcp4TxEvent (
   )
 {
   EFI_STATUS               Status;
-  HTTP_PROTOCOL            *HttpInstance;
   HTTP_TCP_TOKEN_WRAP      *TcpWrap;
 
-  HttpInstance = Wrap->HttpInstance;
   TcpWrap      = &Wrap->TcpWrap;
 
   Status = gBS->CreateEvent (
@@ -341,10 +339,8 @@ HttpCreateTcp4RxEvent (
   )
 {
   EFI_STATUS               Status;
-  HTTP_PROTOCOL            *HttpInstance;
   HTTP_TCP_TOKEN_WRAP      *TcpWrap;
 
-  HttpInstance = Wrap->HttpInstance;
   TcpWrap      = &Wrap->TcpWrap;
 
   Status = gBS->CreateEvent (
@@ -618,11 +614,8 @@ HttpConfigureTcp4 (
   EFI_TCP4_CONFIG_DATA       *Tcp4CfgData;
   EFI_TCP4_ACCESS_POINT      *Tcp4AP;
   EFI_TCP4_OPTION            *Tcp4Option;
-  HTTP_TCP_TOKEN_WRAP        *TcpWrap;
 
   ASSERT (HttpInstance != NULL);
-  TcpWrap = &Wrap->TcpWrap;
-
 
   Tcp4CfgData = &HttpInstance->Tcp4CfgData;
   ZeroMem (Tcp4CfgData, sizeof (EFI_TCP4_CONFIG_DATA));

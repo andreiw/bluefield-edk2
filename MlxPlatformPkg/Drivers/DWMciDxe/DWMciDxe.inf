@@ -1,0 +1,56 @@
+#/** @file
+#  INF file for the MMC Host Protocol implementation for the Designware controller.
+#
+#  Copyright (c) 2016, Mellanox Technologies. All rights reserved.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution.  The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+#**/
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = DWMciDxe
+  FILE_GUID                      = 8C91E049-9BF9-440E-BBAD-7DC5FC082C02
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+
+  ENTRY_POINT                    = DWMciDxeInitialize
+
+[Sources.common]
+  DWMci.c
+
+[Packages]
+  MlxPlatformPkg/MlxPlatformPkg.dec
+  EmbeddedPkg/EmbeddedPkg.dec
+  MdePkg/MdePkg.dec
+  ArmPkg/ArmPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  UefiLib
+  UefiDriverEntryPoint
+  BaseMemoryLib
+  ArmLib
+  IoLib
+  TimerLib
+
+[Protocols]
+  gEfiCpuArchProtocolGuid
+  gEfiDevicePathProtocolGuid
+  gEfiMmcHostProtocolGuid
+
+[FixedPcd]
+  gMlxPlatformTokenSpaceGuid.PcdRshimBase
+  gArmTokenSpaceGuid.PcdSystemMemoryBase
+
+[Pcd]
+  gMlxPlatformTokenSpaceGuid.PcdDWMciBase
+
+[Depex]
+  TRUE

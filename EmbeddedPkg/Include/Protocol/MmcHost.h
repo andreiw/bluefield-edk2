@@ -49,6 +49,7 @@ typedef UINT32 MMC_CMD;
 #define MMC_CMD2              (MMC_INDX(2) | MMC_CMD_WAIT_RESPONSE | MMC_CMD_LONG_RESPONSE)
 #define MMC_CMD3              (MMC_INDX(3) | MMC_CMD_WAIT_RESPONSE)
 #define MMC_CMD5              (MMC_INDX(5) | MMC_CMD_WAIT_RESPONSE | MMC_CMD_NO_CRC_RESPONSE)
+#define MMC_CMD6              (MMC_INDX(6) | MMC_CMD_WAIT_RESPONSE)
 #define MMC_CMD7              (MMC_INDX(7) | MMC_CMD_WAIT_RESPONSE)
 #define MMC_CMD8              (MMC_INDX(8) | MMC_CMD_WAIT_RESPONSE)
 #define MMC_CMD9              (MMC_INDX(9) | MMC_CMD_WAIT_RESPONSE | MMC_CMD_LONG_RESPONSE)
@@ -67,6 +68,26 @@ typedef UINT32 MMC_CMD;
 // Valid responses for CMD1 in eMMC
 #define EMMC_CMD1_CAPACITY_LESS_THAN_2GB 0x00FF8080 // Capacity <= 2GB, byte addressing used
 #define EMMC_CMD1_CAPACITY_GREATER_THAN_2GB 0x40FF8080 // Capacity > 2GB, 512-byte sector addressing used
+
+// Definitions for CMD6 (SWITCH)
+#define MMC_SWITCH_ACCESS_MASK                 0x3
+#define MMC_SWITCH_ACCESS_OFFSET                24
+
+#define MMC_SWITCH_INDEX_MASK                 0xFF
+#define MMC_SWITCH_INDEX_OFFSET                 16
+
+#define MMC_SWITCH_VALUE_MASK                 0xFF
+#define MMC_SWITCH_VALUE_OFFSET                  8
+
+#define MMC_SWITCH_ACCESS_CHANGE_COMMAND_SET     0
+#define MMC_SWITCH_ACCESS_SET_BITS               1
+#define MMC_SWITCH_ACCESS_CLEAR_BITS             2
+#define MMC_SWITCH_ACCESS_WRITE_BYTE             3
+
+#define EMMC_ECSD_BUS_WIDTH_OFFSET             183
+#define EMMC_ECSD_BUS_WIDTH_1_BIT                0
+#define EMMC_ECSD_BUS_WIDTH_4_BIT                1
+#define EMMC_ECSD_BUS_WIDTH_8_BIT                2
 
 typedef enum _MMC_STATE {
     MmcInvalidState = 0,

@@ -1,0 +1,36 @@
+/** @file
+*  Memory-mapped ConFiGuration space (MCFG)
+*
+*  Copyright (c) 2017, Mellanox Technologies. All rights reserved.
+*
+**/
+
+#include "BlueFieldPlatform.h"
+#include <Library/AcpiLib.h>
+#include <IndustryStandard/Acpi.h>
+#include <IndustryStandard/MemoryMappedConfigurationSpaceAccessTable.h>
+
+typedef struct {
+  EFI_ACPI_MEMORY_MAPPED_CONFIGURATION_BASE_ADDRESS_TABLE_HEADER Header;
+  EFI_ACPI_MEMORY_MAPPED_ENHANCED_CONFIGURATION_SPACE_BASE_ADDRESS_ALLOCATION_STRUCTURE Entry;
+} MEMORY_MAPPED_CONFIGURATION_SPACE_BASE_ACCESS_TABLE;
+
+MEMORY_MAPPED_CONFIGURATION_SPACE_BASE_ACCESS_TABLE mAcpiMcfgTable = {
+    {
+        MLNX_ACPI_HEADER (
+          EFI_ACPI_6_1_PCI_EXPRESS_MEMORY_MAPPED_CONFIGURATION_SPACE_BASE_ADDRESS_DESCRIPTION_TABLE_SIGNATURE,
+          MEMORY_MAPPED_CONFIGURATION_SPACE_BASE_ACCESS_TABLE,
+          EFI_ACPI_MEMORY_MAPPED_CONFIGURATION_SPACE_ACCESS_TABLE_REVISION,
+          EFI_ACPI_MLNX_OEM_TABLE_ID
+        ),
+        0, // Reserved
+    }, {
+        FixedPcdGet64 (PcdPciConfigurationSpaceBaseAddress),
+        0, // PciSegmentGroupNumber
+        FixedPcdGet32 (PcdPciBusMin),
+        FixedPcdGet32 (PcdPciBusMax),
+        0 // Reserved;
+    }
+};
+
+VOID* CONST ReferenceAcpiTable = &mAcpiMcfgTable;

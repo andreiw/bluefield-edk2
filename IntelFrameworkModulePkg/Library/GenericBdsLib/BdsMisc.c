@@ -177,6 +177,318 @@ BdsLibGetFreeOptionNumber (
 
 
 /**
+  This function compares the FirstBootArgs to the SecondBootArgs.
+  If FirstBootArgs is identical to SecondBootArgs, then 0 is returned.
+
+  @param  FirstBootArgs   A pointer to a boot arguments string.
+  @param  SecondBootArgs  A pointer to a boot arguments string.
+
+  @retval 0      FirstBootArgs is identical to SecondBootArgs.
+  @return others FirstBootArgs is not identical to SecondBootArgs.
+
+**/
+UINTN
+CompareBootArgs (
+  UINT16   *FirstBootArgs,
+  UINT16   *SecondBootArgs
+  )
+{
+  UINTN   FirstBootArgsSize  = StrSize (FirstBootArgs);
+  UINTN   SecondBootArgsSize = StrSize (SecondBootArgs);
+
+  //
+  // Check boot arguments size
+  //
+  if (FirstBootArgsSize != SecondBootArgsSize) {
+    return FirstBootArgsSize - SecondBootArgsSize;
+  }
+
+  //
+  // If boot arguments size are zero then they are equal
+  //
+  if (FirstBootArgsSize != 0) {
+    return StrCmp (FirstBootArgs, SecondBootArgs);
+  }
+
+  return 0;
+}
+
+/**
+  This function will register the default boot#### or driver#### option base
+  on the VariableName. The new registered boot#### or driver#### will be
+  linked to BdsOptionList and also update to the VariableName.
+  After the boot#### or driver#### updated, the BootOrder or DriverOrder will
+  also be updated; the new boot#### or driver#### option is added to the head
+  of the options list.
+
+  @param  BdsOptionList         The header of the boot#### or driver#### link list
+  @param  DevicePath            The device path which the boot#### or driver####
+                                option present
+  @param  BootDescription       The description of the boot#### or driver####
+  @param  BootArgument          The boot argument
+  @param  VariableName          Indicate if the boot#### or driver#### option
+
+  @retval EFI_SUCCESS           The boot#### or driver#### have been success
+                                registered
+  @retval EFI_STATUS            Return the status of gRT->SetVariable ().
+
+**/
+EFI_STATUS
+EFIAPI
+BdsLibRegisterDefaultOption (
+  IN  LIST_ENTRY                     *BdsOptionList,
+  IN  EFI_DEVICE_PATH_PROTOCOL       *DevicePath,
+  IN  CHAR16                         *BootDescription,
+  IN  CHAR16                         *BootArgument,
+  IN  CHAR16                         *VariableName
+  )
+{
+  EFI_STATUS                Status;
+  UINTN                     Index, Index2;
+  UINT16                    RegisterOptionNumber;
+  UINT16                    *TempOptionPtr;
+  UINTN                     TempOptionSize;
+  UINT16                    *OptionOrderPtr;
+  VOID                      *OptionPtr;
+  UINTN                     OptionSize;
+  UINT8                     *TempPtr;
+  EFI_DEVICE_PATH_PROTOCOL  *OptionDevicePath;
+  CHAR16                    *Description;
+  CHAR16                    *Argument;
+  CHAR16                    OptionName[10];
+  BOOLEAN                   UpdateBootOption;
+  BOOLEAN                   BootOptionExists;
+  UINT16                    BootOrderEntry;
+  UINTN                     OrderItemNum;
+
+  if (DevicePath == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  OptionPtr             = NULL;
+  OptionSize            = 0;
+  TempPtr               = NULL;
+  OptionDevicePath      = NULL;
+  Description           = NULL;
+  Argument              = NULL;
+  OptionOrderPtr        = NULL;
+  UpdateBootOption      = FALSE;
+  BootOptionExists      = FALSE;
+  Status                = EFI_SUCCESS;
+  ZeroMem (OptionName, sizeof (OptionName));
+
+  TempOptionSize = 0;
+  TempOptionPtr = BdsLibGetVariableAndSize (
+                    VariableName,
+                    &gEfiGlobalVariableGuid,
+                    &TempOptionSize
+                    );
+  //
+  // Compare with current option variable if the previous option is set
+  // in global variable.
+  //
+  for (Index = 0; Index < TempOptionSize / sizeof (UINT16); Index++) {
+    //
+    // TempOptionPtr must not be NULL if we have non-zero TempOptionSize.
+    //
+    ASSERT (TempOptionPtr != NULL);
+
+    if (*VariableName == 'B') {
+      UnicodeSPrint (OptionName, sizeof (OptionName), L"Boot%04x",
+                        TempOptionPtr[Index]);
+    } else {
+      UnicodeSPrint (OptionName, sizeof (OptionName), L"Driver%04x",
+                        TempOptionPtr[Index]);
+    }
+
+    OptionPtr = BdsLibGetVariableAndSize (
+                  OptionName,
+                  &gEfiGlobalVariableGuid,
+                  &OptionSize
+                  );
+    if (OptionPtr == NULL) {
+      continue;
+    }
+
+    //
+    // Validate the variable.
+    //
+    if (!ValidateOption(OptionPtr, OptionSize)) {
+      FreePool(OptionPtr);
+      continue;
+    }
+
+    TempPtr          = OptionPtr;
+    TempPtr         += sizeof (UINT32) + sizeof (UINT16);
+    Description      = (CHAR16 *) TempPtr;
+    TempPtr         += StrSize ((CHAR16 *) TempPtr);
+    OptionDevicePath = (EFI_DEVICE_PATH_PROTOCOL *) TempPtr;
+    TempPtr         += GetDevicePathSize (DevicePath);
+    Argument         = (CHAR16 *) (TempPtr);
+
+    if (BootArgument != NULL) {
+      UpdateBootOption = (CompareBootArgs (Argument, BootArgument) != 0);
+    }
+
+    if (CompareMem (OptionDevicePath,
+                    DevicePath,
+                    GetDevicePathSize (OptionDevicePath)) == 0) {
+      if (CompareMem (Description,
+                      BootDescription,
+                      StrSize (Description)) == 0 && !UpdateBootOption) {
+        //
+        // Got the option, just update the boot order
+        //
+        FreePool (OptionPtr);
+        BootOptionExists = TRUE;
+        break;
+      } else {
+        //
+        // Option changed, need update.
+        //
+        UpdateBootOption = TRUE;
+        FreePool (OptionPtr);
+        break;
+      }
+    }
+
+    FreePool (OptionPtr);
+  }
+
+  OptionSize        = sizeof (UINT32) + sizeof (UINT16);
+  OptionSize       += StrSize (BootDescription);
+  OptionSize       += GetDevicePathSize (DevicePath);
+  if (BootArgument != NULL) {
+    OptionSize     += StrSize(BootArgument);
+  }
+  OptionPtr          = AllocateZeroPool (OptionSize);
+  ASSERT (OptionPtr != NULL);
+
+  TempPtr             = OptionPtr;
+  *(UINT32 *) TempPtr = LOAD_OPTION_ACTIVE;
+  TempPtr            += sizeof (UINT32);
+  *(UINT16 *) TempPtr = (UINT16) GetDevicePathSize (DevicePath);
+  TempPtr            += sizeof (UINT16);
+  CopyMem (TempPtr, BootDescription, StrSize (BootDescription));
+  TempPtr            += StrSize (BootDescription);
+  CopyMem (TempPtr, DevicePath, GetDevicePathSize (DevicePath));
+  if (BootArgument != NULL) {
+    TempPtr          += GetDevicePathSize (DevicePath);
+    CopyMem (TempPtr, BootArgument, StrSize(BootArgument));
+  }
+
+  if (UpdateBootOption || BootOptionExists) {
+    //
+    // The number in option#### to be updated.
+    // In this case, we must have non-NULL TempOptionPtr.
+    //
+    ASSERT (TempOptionPtr != NULL);
+    RegisterOptionNumber = TempOptionPtr[Index];
+  } else {
+    //
+    // The new option#### number
+    //
+    RegisterOptionNumber = BdsLibGetFreeOptionNumber(VariableName);
+  }
+
+  if (*VariableName == 'B') {
+    UnicodeSPrint (OptionName, sizeof (OptionName), L"Boot%04x",
+                    RegisterOptionNumber);
+  } else {
+    UnicodeSPrint (OptionName, sizeof (OptionName), L"Driver%04x",
+                    RegisterOptionNumber);
+  }
+
+  if (!BootOptionExists) {
+    Status = gRT->SetVariable (
+                    OptionName,
+                    &gEfiGlobalVariableGuid,
+                    EFI_VARIABLE_BOOTSERVICE_ACCESS |
+                    EFI_VARIABLE_RUNTIME_ACCESS     |
+                    EFI_VARIABLE_NON_VOLATILE,
+                    OptionSize,
+                    OptionPtr
+                    );
+
+    if (EFI_ERROR (Status)) {
+      FreePool (OptionPtr);
+      if (TempOptionPtr != NULL) {
+        FreePool (TempOptionPtr);
+      }
+      return Status;
+    }
+  }
+  FreePool (OptionPtr);
+
+  //
+  // Update the option order variable
+  //
+
+  //
+  // If no option order
+  //
+  if (TempOptionSize == 0) {
+    BootOrderEntry = 0;
+    Status = gRT->SetVariable (
+                    VariableName,
+                    &gEfiGlobalVariableGuid,
+                    EFI_VARIABLE_BOOTSERVICE_ACCESS |
+                    EFI_VARIABLE_RUNTIME_ACCESS     |
+                    EFI_VARIABLE_NON_VOLATILE,
+                    sizeof (UINT16),
+                    &BootOrderEntry
+                    );
+    if (TempOptionPtr != NULL) {
+      FreePool (TempOptionPtr);
+    }
+    return Status;
+  }
+
+  //
+  // TempOptionPtr must not be NULL if TempOptionSize is not zero.
+  //
+  ASSERT (TempOptionPtr != NULL);
+
+  OrderItemNum    = (TempOptionSize / sizeof (UINT16));
+  OrderItemNum   += (BootOptionExists || UpdateBootOption) ? 0 : 1;
+  OptionOrderPtr  = AllocateZeroPool ( OrderItemNum * sizeof (UINT16));
+  ASSERT (OptionOrderPtr!= NULL);
+
+  //
+  // Set the option as the default boot option
+  //
+  Index2 = 0;
+  if (TempOptionPtr[Index2] != RegisterOptionNumber) {
+    OptionOrderPtr[Index2++] = RegisterOptionNumber;
+    if (BootOptionExists || UpdateBootOption) {
+      for (Index = 0; Index < OrderItemNum; Index++) {
+        if (TempOptionPtr[Index] != RegisterOptionNumber)
+          OptionOrderPtr[Index2++] = TempOptionPtr[Index];
+      }
+    } else {
+        CopyMem (OptionOrderPtr + Index2, TempOptionPtr,
+                    (OrderItemNum - 1) * sizeof (UINT16));
+    }
+
+    Status = gRT->SetVariable (
+                    VariableName,
+                    &gEfiGlobalVariableGuid,
+                    EFI_VARIABLE_BOOTSERVICE_ACCESS |
+                    EFI_VARIABLE_RUNTIME_ACCESS     |
+                    EFI_VARIABLE_NON_VOLATILE,
+                    OrderItemNum * sizeof (UINT16),
+                    OptionOrderPtr
+                    );
+  }
+
+  FreePool (TempOptionPtr);
+  FreePool (OptionOrderPtr);
+
+  return Status;
+}
+
+
+/**
   This function will register the new boot#### or driver#### option base on
   the VariableName. The new registered boot#### or driver#### will be linked
   to BdsOptionList and also update to the VariableName. After the boot#### or
@@ -185,7 +497,8 @@ BdsLibGetFreeOptionNumber (
   @param  BdsOptionList         The header of the boot#### or driver#### link list
   @param  DevicePath            The device path which the boot#### or driver####
                                 option present
-  @param  String                The description of the boot#### or driver####
+  @param  BootDescription       The description of the boot#### or driver####
+  @param  BootArgument          The boot argument
   @param  VariableName          Indicate if the boot#### or driver#### option
 
   @retval EFI_SUCCESS           The boot#### or driver#### have been success
@@ -198,7 +511,8 @@ EFIAPI
 BdsLibRegisterNewOption (
   IN  LIST_ENTRY                     *BdsOptionList,
   IN  EFI_DEVICE_PATH_PROTOCOL       *DevicePath,
-  IN  CHAR16                         *String,
+  IN  CHAR16                         *BootDescription,
+  IN  CHAR16                         *BootArgument,
   IN  CHAR16                         *VariableName
   )
 {
@@ -213,8 +527,10 @@ BdsLibRegisterNewOption (
   UINT8                     *TempPtr;
   EFI_DEVICE_PATH_PROTOCOL  *OptionDevicePath;
   CHAR16                    *Description;
+  CHAR16                    *Argument;
   CHAR16                    OptionName[10];
   BOOLEAN                   UpdateDescription;
+  BOOLEAN                   UpdateBootArgument;
   UINT16                    BootOrderEntry;
   UINTN                     OrderItemNum;
 
@@ -227,8 +543,10 @@ BdsLibRegisterNewOption (
   TempPtr               = NULL;
   OptionDevicePath      = NULL;
   Description           = NULL;
+  Argument              = NULL;
   OptionOrderPtr        = NULL;
   UpdateDescription     = FALSE;
+  UpdateBootArgument    = FALSE;
   Status                = EFI_SUCCESS;
   ZeroMem (OptionName, sizeof (OptionName));
 
@@ -270,17 +588,24 @@ BdsLibRegisterNewOption (
       continue;
     }
 
-    TempPtr         =   OptionPtr;
-    TempPtr         +=  sizeof (UINT32) + sizeof (UINT16);
-    Description     =   (CHAR16 *) TempPtr;
-    TempPtr         +=  StrSize ((CHAR16 *) TempPtr);
-    OptionDevicePath =  (EFI_DEVICE_PATH_PROTOCOL *) TempPtr;
+    TempPtr          = OptionPtr;
+    TempPtr         += sizeof (UINT32) + sizeof (UINT16);
+    Description      = (CHAR16 *) TempPtr;
+    TempPtr         += StrSize ((CHAR16 *) TempPtr);
+    OptionDevicePath = (EFI_DEVICE_PATH_PROTOCOL *) TempPtr;
+    TempPtr         += GetDevicePathSize (DevicePath);
+    Argument         = (CHAR16 *) (TempPtr);
+
+    if (BootArgument != NULL) {
+      UpdateBootArgument = (CompareBootArgs (Argument, BootArgument) != 0);
+    }
 
     //
     // Notes: the description may will change base on the GetStringToken
     //
     if (CompareMem (OptionDevicePath, DevicePath, GetDevicePathSize (OptionDevicePath)) == 0) {
-      if (CompareMem (Description, String, StrSize (Description)) == 0) { 
+      if (CompareMem (Description, BootDescription, StrSize (Description)) == 0
+               && !UpdateBootArgument) {
         //
         // Got the option, so just return
         //
@@ -289,7 +614,7 @@ BdsLibRegisterNewOption (
         return EFI_SUCCESS;
       } else {
         //
-        // Option description changed, need update.
+        // Option changed, need update.
         //
         UpdateDescription = TRUE;
         FreePool (OptionPtr);
@@ -300,8 +625,11 @@ BdsLibRegisterNewOption (
     FreePool (OptionPtr);
   }
 
-  OptionSize          = sizeof (UINT32) + sizeof (UINT16) + StrSize (String);
+  OptionSize          = sizeof (UINT32) + sizeof (UINT16) + StrSize (BootDescription);
   OptionSize          += GetDevicePathSize (DevicePath);
+  if (BootArgument != NULL) {
+    OptionSize        += StrSize(BootArgument);
+  }
   OptionPtr           = AllocateZeroPool (OptionSize);
   ASSERT (OptionPtr != NULL);
   
@@ -310,9 +638,13 @@ BdsLibRegisterNewOption (
   TempPtr             += sizeof (UINT32);
   *(UINT16 *) TempPtr = (UINT16) GetDevicePathSize (DevicePath);
   TempPtr             += sizeof (UINT16);
-  CopyMem (TempPtr, String, StrSize (String));
-  TempPtr             += StrSize (String);
+  CopyMem (TempPtr, BootDescription, StrSize (BootDescription));
+  TempPtr             += StrSize (BootDescription);
   CopyMem (TempPtr, DevicePath, GetDevicePathSize (DevicePath));
+  if (BootArgument != NULL) {
+    TempPtr             += GetDevicePathSize (DevicePath);
+    CopyMem (TempPtr, BootArgument, StrSize(BootArgument));
+  }
 
   if (UpdateDescription) {
     //

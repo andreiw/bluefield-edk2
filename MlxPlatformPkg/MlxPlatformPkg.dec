@@ -1,0 +1,95 @@
+#/** @file
+#
+#  Copyright (c) 2016, Mellanox Technologies Inc.  All rights reserved.
+#
+#  This program and the accompanying materials are licensed and made available
+#  under the terms and conditions of the BSD License which accompanies this
+#  distribution.  The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR
+#  IMPLIED.
+#
+#**/
+
+[Defines]
+  DEC_SPECIFICATION              = 0x00010005
+  PACKAGE_NAME                   = MlxPlatformPkg
+  PACKAGE_GUID                   = a16e4af2-b3ef-11e5-8797-001aca00bfc4
+  PACKAGE_VERSION                = 0.1
+
+################################################################################
+#
+# Include Section - list of Include Paths that are provided by this package.
+#                   Comments are used for Keywords and Module Types.
+#
+# Supported Module Types:
+#  BASE SEC PEI_CORE PEIM DXE_CORE DXE_DRIVER DXE_RUNTIME_DRIVER DXE_SMM_DRIVER DXE_SAL_DRIVER UEFI_DRIVER UEFI_APPLICATION
+#
+################################################################################
+[Includes.common]
+  Include                        # Root include for the package
+
+[Guids.common]
+  gMlxPlatformTokenSpaceGuid = { 0xb1ec1648, 0xb3ef, 0x11e5, { 0x87, 0x97, 0x00, 0x1a, 0xca, 0x00, 0xbf, 0xc4 } }
+
+[PcdsFixedAtBuild.common]
+  # Physical address of the RShim
+  gMlxPlatformTokenSpaceGuid.PcdRshimBase|0x800000|UINT64|0x00000000
+  # Physical address of the DWMMC controller
+  gMlxPlatformTokenSpaceGuid.PcdDWMciBase|0x6008000|UINT64|0x00000001
+  # Base address of the PCIe enanced configuration space (ECAM)
+  gMlxPlatformTokenSpaceGuid.PcdPciConfigurationSpaceBaseAddress|0xe100000000|UINT64|0x00000003
+
+  #
+  # Bluefield platforms Guids
+  # 389c4e2d-743a-441a-9c1a-b505dfdda8d8
+  gMlxPlatformTokenSpaceGuid.PcdFdtBf2|{ 0x2d, 0x4e, 0x9c, 0x38, 0x3a, 0x74, 0x1a, 0x44, 0x1a, 0x9c, 0xb5, 0x05, 0xdf, 0xdd, 0xa8, 0xd8 }|VOID*|0x00000010
+  # 0e68a3d4-54a6-4078-b289-a0bab921618c
+  gMlxPlatformTokenSpaceGuid.PcdFdtBf4|{ 0xd4, 0xa3, 0x68, 0x0e, 0xa6, 0x54, 0x78, 0x40, 0x89, 0xb2, 0xa0, 0xba, 0xb9, 0x21, 0x61, 0x8c }|VOID*|0x00000011
+  # b6c2b950-df15-4d48-887c-a0b75ff85655
+  gMlxPlatformTokenSpaceGuid.PcdFdtBf16|{ 0x50, 0xb9, 0xc2, 0xb6, 0x15, 0xdf, 0x48, 0x4d, 0x7c, 0x88, 0xa0, 0xb7, 0x5f, 0xf8, 0x56, 0x55 }|VOID*|0x00000012
+  # faf52462-b8d1-4a02-810b-9a1909fffb51
+  gMlxPlatformTokenSpaceGuid.PcdFdtBfMini|{ 0x62, 0x24, 0xf5, 0xfa, 0xd1, 0xb8, 0x02, 0x4a, 0x0b, 0x81, 0x9a, 0x19, 0x09, 0xff, 0xfb, 0x51 }|VOID*|0x00000013
+  # 8236f200-ed7e-11e6-9598-0800200c9a66
+  gMlxPlatformTokenSpaceGuid.PcdFdtBfFull|{ 0x00, 0xf2, 0x36, 0x82, 0x7e, 0xed, 0xe6, 0x11, 0x98, 0x95, 0x08, 0x00, 0x20, 0x0c, 0x9a, 0x66 }|VOID*|0x00000014
+
+  # EEPROM
+  # Address of the EEPROM persistent store, I2C slave device on bus.
+  gMlxPlatformTokenSpaceGuid.PcdEepromStoreAddress|0|UINT8|0x00000040
+  # Size of the EEPROM persistent store.
+  gMlxPlatformTokenSpaceGuid.PcdEepromStoreSize|0|UINT32|0x00000041
+  # Size of the EEPROM page.
+  gMlxPlatformTokenSpaceGuid.PcdEepromStorePageSize|0|UINT32|0x00000042
+  # I2C bus identifier at which the EEPROM is attached to.
+  gMlxPlatformTokenSpaceGuid.PcdEepromBusId|0|UINT8|0x00000043
+
+  # RTC
+  # Address of the RTC, I2C slave device on bus.
+  gMlxPlatformTokenSpaceGuid.PcdRtcAddress|0|UINT8|0x00000045
+  # I2C bus identifier at which the RTC is attached to.
+  gMlxPlatformTokenSpaceGuid.PcdRtcBusId|0|UINT8|0x00000046
+
+  # IPMB
+  # Address of the BMC, management controller. All IPMI requests will
+  # be forwarded to that address.
+  gMlxPlatformTokenSpaceGuid.PcdIpmbBmcAddress|0|UINT8|0x00000055
+  # I2C slave address of the IPMB device. All IPMI responses will be
+  # forwarded to that address.
+  gMlxPlatformTokenSpaceGuid.PcdIpmbSlaveAddress|0|UINT8|0x00000056
+  # I2C bus identifier at which the IPMB interface operates.
+  gMlxPlatformTokenSpaceGuid.PcdIpmbBusId|0|UINT8|0x00000057
+  # If the IPMB requester times out waiting for the response, it may rety
+  # the request and time-out until a the retry count is exceeded.
+  gMlxPlatformTokenSpaceGuid.PcdIpmbRetryCnt|0|UINT8|0x00000058
+
+  # I2C SMBUS
+  # Bitmask, if asserted then the associated I2C busses are enabled.
+  gMlxPlatformTokenSpaceGuid.PcdI2cSmbusBitmask|0|UINT8|0x00000050
+  # Frequency in KHz of the I2C SMBus.
+  gMlxPlatformTokenSpaceGuid.PcdI2cSmbusFrequencyKhz|0|UINT32|0x00000051
+
+[Protocols]
+  gBluefieldEepromProtocolGuid = { 0x71954bda, 0x60d3, 0x4ef8, { 0x8e, 0x3c, 0x0e, 0x33, 0x9f, 0x3b, 0xc2, 0x2b }}
+  gBluefieldRtcProtocolGuid = { 0xd35605e4, 0x5011, 0x42a2, { 0xa9, 0x48, 0x24, 0xdf, 0x48, 0xa4, 0xc9, 0x97 }}

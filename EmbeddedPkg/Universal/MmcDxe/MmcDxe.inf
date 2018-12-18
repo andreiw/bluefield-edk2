@@ -33,6 +33,7 @@
 [Packages]
   EmbeddedPkg/EmbeddedPkg.dec
   MdePkg/MdePkg.dec
+  StdLib/StdLib.dec
 
 [LibraryClasses]
   BaseLib

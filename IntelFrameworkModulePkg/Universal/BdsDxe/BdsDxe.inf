@@ -112,6 +112,7 @@
   CapsuleLib
   PcdLib
   UefiHiiServicesLib
+  IpmiLib
   
 [Guids]
   ## SOMETIMES_PRODUCES ## Variable:L"BootXXXX"          # Boot option variable

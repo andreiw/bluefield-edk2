@@ -275,6 +275,13 @@ BdsLibBuildOptionFromVar (
   IN  CHAR16                          *VariableName
   );
 
+EFI_STATUS
+EFIAPI
+BdsLibBootOptionOverride (
+  IN  LIST_ENTRY                      *BdsCommonOptionList,
+  IN  CHAR16                          *VariableName
+  );
+
 /**
   This function reads the EFI variable (VendorGuid/Name) and returns a dynamically allocated
   buffer and the size of the buffer. If it fails, return NULL.
@@ -337,6 +344,36 @@ BdsLibVariableToOption (
   );
 
 /**
+  This function will register the default boot#### or driver#### option base
+  on the VariableName. The new registered boot#### or driver#### will be
+  linked to BdsOptionList and also update to the VariableName.
+  After the boot#### or driver#### updated, the BootOrder or DriverOrder will
+  also be updated; the new boot#### or driver#### option is added to the head
+  of the options list.
+
+  @param  BdsOptionList         The header of the boot#### or driver#### link list
+  @param  DevicePath            The device path which the boot#### or driver####
+                                option present
+  @param  BootDescription       The description of the boot#### or driver####
+  @param  BootArgument          The boot argument
+  @param  VariableName          Indicate if the boot#### or driver#### option
+
+  @retval EFI_SUCCESS           The boot#### or driver#### have been success
+                                registered
+  @retval EFI_STATUS            Return the status of gRT->SetVariable ().
+
+**/
+EFI_STATUS
+EFIAPI
+BdsLibRegisterDefaultOption (
+  IN  LIST_ENTRY                     *BdsOptionList,
+  IN  EFI_DEVICE_PATH_PROTOCOL       *DevicePath,
+  IN  CHAR16                         *BootDescription,
+  IN  CHAR16                         *BootArgument,
+  IN  CHAR16                         *VariableName
+  );
+
+/**
   This function registers the new boot#### or driver#### option based on
   the VariableName. The new registered boot#### or driver#### will be linked
   to BdsOptionList and also update to the VariableName. After the boot#### or
@@ -345,7 +382,8 @@ BdsLibVariableToOption (
   @param  BdsOptionList         The header of the boot#### or driver#### link list.
   @param  DevicePath            The device path that the boot#### or driver####
                                 option present.
-  @param  String                The description of the boot#### or driver####.
+  @param  BootDescription       The description of the boot#### or driver####.
+  @param  BootArgument          The boot argument.
   @param  VariableName          Indicate if the boot#### or driver#### option.
 
   @retval EFI_SUCCESS           The boot#### or driver#### have been successfully
@@ -358,7 +396,8 @@ EFIAPI
 BdsLibRegisterNewOption (
   IN  LIST_ENTRY                     *BdsOptionList,
   IN  EFI_DEVICE_PATH_PROTOCOL       *DevicePath,
-  IN  CHAR16                         *String,
+  IN  CHAR16                         *BootDescription,
+  IN  CHAR16                         *BootArgument,
   IN  CHAR16                         *VariableName
   );
 

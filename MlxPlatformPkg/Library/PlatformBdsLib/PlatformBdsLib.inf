@@ -1,0 +1,90 @@
+## @file
+#  Implementation for PlatformBdsLib library class interfaces.
+#  using ARM Platform framework.
+#
+#  Copyright (c) 2007 - 2014, Intel Corporation. All rights reserved.<BR>
+#  Copyright (c) 2014, ARM Ltd. All rights reserved.<BR>
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution.  The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = PlatformBdsLib
+  FILE_GUID                      = 0ff755fc-9385-474f-9232-922633f1adfd
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = PlatformBdsLib|DXE_DRIVER
+  CONSTRUCTOR                    = PlatformBdsConstructor
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES           = ARM AARCH64
+#
+
+[Sources]
+  DefaultBootOption.c
+  BdsPlatform.c
+  BdsPlatform.h
+  AuthCheck.c
+  Tests.c
+  TestOutage.c
+  TestOutage.h
+  TestUtil.c
+  TestUtil.h
+
+[Packages]
+  ArmPkg/ArmPkg.dec
+  ArmPlatformPkg/ArmPlatformPkg.dec
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  IntelFrameworkModulePkg/IntelFrameworkModulePkg.dec
+
+[LibraryClasses]
+  BaseLib
+  BaseMemoryLib
+  DebugLib
+  DevicePathLib
+  MemoryAllocationLib
+  UefiBootServicesTableLib
+  PcdLib
+  GenericBdsLib
+  BootParamFileSystemLib
+  SerialPortLib
+
+[Guids]
+  gArmGlobalVariableGuid
+  gEfiFileSystemInfoGuid
+  gEfiImageSecurityDatabaseGuid
+
+[Pcd]
+  gArmPlatformTokenSpaceGuid.PcdDefaultBootDescription
+  gArmPlatformTokenSpaceGuid.PcdDefaultBootDevicePath
+  gArmPlatformTokenSpaceGuid.PcdDefaultBootArgument
+  gArmPlatformTokenSpaceGuid.PcdDefaultUefiTests
+  gArmPlatformTokenSpaceGuid.PcdDefaultConInPaths
+  gArmPlatformTokenSpaceGuid.PcdDefaultConOutPaths
+  gEfiMdePkgTokenSpaceGuid.PcdPlatformBootTimeOut
+  gEfiIntelFrameworkModulePkgTokenSpaceGuid.PcdLogoFile
+  gEfiMdeModulePkgTokenSpaceGuid.PcdVariableStoreSize               ## For testing only
+  gEfiMdeModulePkgTokenSpaceGuid.PcdMaxVariableSize                 ## For testing only
+  gArmTokenSpaceGuid.PcdSystemMemoryBase
+
+[Protocols]
+  gEfiDevicePathFromTextProtocolGuid
+  gEfiDevicePathToTextProtocolGuid
+
+[BuildOptions]
+  XCODE:*_*_*_CC_FLAGS = -DEFI_VARIABLE_SIMULATE_OUTAGE
+  INTEL:*_*_*_CC_FLAGS = -DEFI_VARIABLE_SIMULATE_OUTAGE
+   RVCT:*_*_*_CC_FLAGS = -DEFI_VARIABLE_SIMULATE_OUTAGE
+   MSFT:*_*_*_CC_FLAGS = -DEFI_VARIABLE_SIMULATE_OUTAGE
+    GCC:*_*_*_CC_FLAGS = -DEFI_VARIABLE_SIMULATE_OUTAGE

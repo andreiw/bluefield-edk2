@@ -1,0 +1,50 @@
+#/** @file
+#
+#  ACPI table data and ASL sources required to boot Palladium model
+#  with no TRIO support.
+#
+#  Copyright (c) 2017, Mellanox Technologies. All rights reserved.
+#
+#**/
+
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = NoTrioTables
+  FILE_GUID                      = 2ff16b22-b9b2-4630-aa7f-cdd1b4743424
+  MODULE_TYPE                    = USER_DEFINED
+  VERSION_STRING                 = 1.0
+
+# For a palladium model which supports TRIO, add SsdtPci.asl
+# to the Sources list
+[Sources]
+  Dsdt.asl
+  Fadt.aslc
+  Gtdt.aslc
+  Mcfg.aslc
+  Iort.aslc
+  SsdtNvdimm.asl
+  SsdtCrypto.asl
+  SsdtCryptoMin.asl
+
+[Packages]
+  MlxPlatformPkg/MlxPlatformPkg.dec
+  ArmPkg/ArmPkg.dec
+  ArmPlatformPkg/ArmPlatformPkg.dec
+  EmbeddedPkg/EmbeddedPkg.dec
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+
+[FixedPcd]
+  gArmPlatformTokenSpaceGuid.PcdCoreCount
+  gArmTokenSpaceGuid.PcdGicDistributorBase
+  gArmTokenSpaceGuid.PcdGicRedistributorsBase
+  gArmTokenSpaceGuid.PcdGicRedistributorsLength
+  gArmTokenSpaceGuid.PcdGicInterruptInterfaceBase
+  gArmTokenSpaceGuid.PcdGicITSBase
+  gArmTokenSpaceGuid.PcdArmArchTimerSecIntrNum
+  gArmTokenSpaceGuid.PcdArmArchTimerIntrNum
+  gArmTokenSpaceGuid.PcdArmArchTimerVirtIntrNum
+  gArmTokenSpaceGuid.PcdArmArchTimerHypIntrNum
+  gArmPlatformTokenSpaceGuid.PcdPciBusMin
+  gArmPlatformTokenSpaceGuid.PcdPciBusMax
+  gMlxPlatformTokenSpaceGuid.PcdPciConfigurationSpaceBaseAddress

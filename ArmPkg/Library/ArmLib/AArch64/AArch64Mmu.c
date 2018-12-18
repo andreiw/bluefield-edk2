@@ -505,8 +505,14 @@ SetMemoryAttributes (
 
   TranslationTable = ArmGetTTBR0BaseAddress ();
 
+  // Clean/Invalidate cache before translation table is updated.
+  ArmCleanInvalidateDataCache ();
+  ArmInvalidateInstructionCache ();
+  ArmDisableMmu ();
+
   Status = FillTranslationTable (TranslationTable, &MemoryRegion);
   if (RETURN_ERROR (Status)) {
+    ArmEnableMmu ();
     return Status;
   }
 
@@ -518,6 +524,8 @@ SetMemoryAttributes (
 
   // Invalidate all TLB entries so changes are synced
   ArmInvalidateTlb ();
+
+  ArmEnableMmu ();
 
   return RETURN_SUCCESS;
 }

@@ -60,6 +60,33 @@
     GicMsiFrameId, PhysicalBaseAddress, Flags, SPICount, SPIBase \
   }
 
+#define EFI_ACPI_6_1_GICC_STRUCTURE_INIT(GicId, AcpiCpuUid, Mpidr, Flags, PmuIrq,    \
+    GicBase, GicVBase, GicHBase, GsivId, GicRBase)                                   \
+  {                                                                                  \
+    EFI_ACPI_5_1_GIC, sizeof (EFI_ACPI_6_1_GIC_STRUCTURE), EFI_ACPI_RESERVED_WORD,   \
+    GicId, AcpiCpuUid, Flags, 0, PmuIrq, 0, GicBase, GicVBase, GicHBase,             \
+    GsivId, GicRBase, Mpidr                                                          \
+  }
+
+#define EFI_ACPI_6_1_GIC_DISTRIBUTOR_INIT(GicDistHwId, GicDistBase, GicDistVector, GicVersion) \
+  { \
+    EFI_ACPI_6_1_GICD, sizeof (EFI_ACPI_6_1_GIC_DISTRIBUTOR_STRUCTURE), \
+    EFI_ACPI_RESERVED_WORD, GicDistHwId, GicDistBase, GicDistVector, \
+    GicVersion                              \
+  }
+
+#define EFI_ACPI_6_1_GICR_INIT(GicrBase, GicrLength) \
+  { \
+    EFI_ACPI_6_1_GICR, sizeof (EFI_ACPI_6_1_GICR_STRUCTURE), \
+    EFI_ACPI_RESERVED_WORD, GicrBase, GicrLength \
+  }
+
+#define EFI_ACPI_6_1_GIC_ITS_INIT(GicItsId, BaseAddr) \
+  { \
+    EFI_ACPI_6_1_GIC_ITS, sizeof (EFI_ACPI_6_1_GIC_ITS_STRUCTURE), \
+    EFI_ACPI_RESERVED_WORD, GicItsId, BaseAddr, EFI_ACPI_RESERVED_WORD \
+  }
+
 //
 // SBSA Generic Watchdog
 //

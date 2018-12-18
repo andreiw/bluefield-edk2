@@ -42,6 +42,11 @@ EFI_GUID                           *gDxeCoreFileName;
 EFI_LOADED_IMAGE_PROTOCOL          *gDxeCoreLoadedImage;
 
 //
+// Store the System Table pointer in the EFI INFO structure.
+//
+#define MLNX_EFI_INFO_SET_SYS_TBL(tbl) ((UINT64 *)0x88000000)[24] = (UINT64)tbl
+
+//
 // DXE Core Module Variables
 //
 EFI_BOOT_SERVICES mBootServices = {
@@ -277,6 +282,11 @@ DxeMain (
   //
   gDxeCoreST = AllocateRuntimeCopyPool (sizeof (EFI_SYSTEM_TABLE), &mEfiSystemTableTemplate);
   ASSERT (gDxeCoreST != NULL);
+
+  // Hack: save gDxeCoreST (the System Table pointer) in the EFI info structure
+  // It is specific to the Mellanox BlueField SoC and will be used for debugging
+  // purpose, such as locating all the debug symbols.
+  MLNX_EFI_INFO_SET_SYS_TBL(gDxeCoreST);
 
   gDxeCoreRT = AllocateRuntimeCopyPool (sizeof (EFI_RUNTIME_SERVICES), &mEfiRuntimeServicesTableTemplate);
   ASSERT (gDxeCoreRT != NULL);

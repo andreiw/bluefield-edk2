@@ -250,5 +250,20 @@ BdsSetConsoleMode (
   BOOLEAN  IsSetupMode
   );
 
+/**
+  Function show progress bar to wait for user input.
+
+
+  @param   TimeoutDefault  The fault time out value before the system continue to boot.
+
+  @retval  EFI_SUCCESS       User pressed some key except "Enter"
+  @retval  EFI_TIME_OUT      Timeout expired or user press "Enter"
+
+**/
+EFI_STATUS
+ShowProgress (
+  IN UINT16                       TimeoutDefault
+  );
+
 #endif // _FRONT_PAGE_H_
 

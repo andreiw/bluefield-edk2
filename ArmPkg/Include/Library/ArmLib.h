@@ -661,4 +661,20 @@ ArmUnsetCpuActlrBit (
   IN  UINTN    Bits
   );
 
+//
+// Helper functions for accessing CPU ISAR
+//
+
+UINTN
+EFIAPI
+ArmReadCpuIsar (
+  VOID
+  );
+
+UINTN
+EFIAPI
+ArmGetCpuIsarBit (
+  IN  UINTN    Bits
+  );
+
 #endif // __ARM_LIB__

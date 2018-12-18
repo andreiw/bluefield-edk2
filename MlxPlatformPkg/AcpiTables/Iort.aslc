@@ -1,0 +1,238 @@
+/** @file
+*  IO Remapping Table (IORT)
+*
+*  Copyright (c) 2017, Mellanox Technologies. All rights reserved.
+**/
+
+#include "BlueFieldPlatform.h"
+#include "Iort.h"
+
+EFI_ACPI_6_1_IORT_STRUCTURE Iort = {
+  {
+    MLNX_ACPI_HEADER (
+      EFI_ACPI_6_1_INTERRUPT_SOURCE_OVERRIDE_SIGNATURE,
+      EFI_ACPI_6_1_IORT_STRUCTURE,
+      EFI_ACPI_6_1_IORT_REVISION,
+      EFI_ACPI_MLNX_OEM_TABLE_ID_IORT
+    ),
+    // IORT Specific fields
+    3 + NUM_PKA_DEV,        // NumberOfNodes
+    0x30,                   // NodeArrayOffset
+    0                       // Reserved_44
+  },
+  {  // ITS Group Node
+    EFI_ACPI_6_1_IORT_TYPE_ITS,               // Type
+    sizeof(EFI_ACPI_6_1_IORT_ITS_NODE),       // Length
+    0,                                        // Revision
+    0,                                        // Reserved_4
+    0,                                        // NumberOfMappings
+    0,                                        // IdArray
+    1,                                        // NumberOfIts
+    { 0 }                                     // ItsIdArray
+  },
+  {  // Root Complex Node
+    EFI_ACPI_6_1_IORT_TYPE_RC,               // Type
+    sizeof(EFI_ACPI_6_1_IORT_RC_NODE),       // Length
+    0,                                        // Revision
+    0,                                        // Reserved_4
+    1,                                        // NumberOfMappings
+    OFFSET_OF(EFI_ACPI_6_1_IORT_RC_NODE, IdMapping), // IdArray
+    0,                                        // MemoryAccessProperties
+    0,                                        // AtsAttribute
+    0,                                        // PciSegment
+    {                                         // IdMapping
+      {
+      0,                                      // InputBase
+      0x10000,                                // NumberOfIds
+      0,                                      // OutputBase
+      OFFSET_OF(EFI_ACPI_6_1_IORT_STRUCTURE, ItsNode), // OutputReference
+      0                                       // Flags
+      }
+    }
+  },
+  {  // SMMU Node
+    EFI_ACPI_6_1_IORT_TYPE_INVALID,            // Type
+    sizeof(EFI_ACPI_6_1_IORT_SMMU_NODE),       // Length
+    0,                                         // Revision
+    0,                                         // Reserved_4
+    1,                                         // NumberOfMappings
+    OFFSET_OF(EFI_ACPI_6_1_IORT_SMMU_NODE, IdMapping), // IdArray
+    0x8800000,                                 // BaseAddress
+    0x100000,                                  // Span
+    EFI_ACPI_6_1_IORT_MMU_500,                 // Model
+    SMMU_CPTW,                                 // Flags
+    OFFSET_OF(EFI_ACPI_6_1_IORT_SMMU_NODE, GlobalInts),  // GlobalIntArray
+    128,                                       // NumberOfContextInts
+    OFFSET_OF(EFI_ACPI_6_1_IORT_SMMU_NODE, ContextInts), // ContextIntArray
+    3,                                         // NumberOfPmuInts
+    OFFSET_OF(EFI_ACPI_6_1_IORT_SMMU_NODE, PmuInts),     // PmuIntArray
+    {  // GlobalInts
+      332, LEVEL_TRIGGER,       // NSgIrpt
+      0, 0,                     // NSgCfgIrpt not implemented
+    },
+    {  // ContextInts
+      { 201, LEVEL_TRIGGER },
+      { 202, LEVEL_TRIGGER },
+      { 203, LEVEL_TRIGGER },
+      { 204, LEVEL_TRIGGER },
+      { 205, LEVEL_TRIGGER },
+      { 206, LEVEL_TRIGGER },
+      { 207, LEVEL_TRIGGER },
+      { 208, LEVEL_TRIGGER },
+      { 200, LEVEL_TRIGGER },
+      { 210, LEVEL_TRIGGER },
+      { 211, LEVEL_TRIGGER },
+      { 212, LEVEL_TRIGGER },
+      { 213, LEVEL_TRIGGER },
+      { 214, LEVEL_TRIGGER },
+      { 215, LEVEL_TRIGGER },
+      { 216, LEVEL_TRIGGER },
+      { 217, LEVEL_TRIGGER },
+      { 218, LEVEL_TRIGGER },
+      { 210, LEVEL_TRIGGER },
+      { 220, LEVEL_TRIGGER },
+      { 221, LEVEL_TRIGGER },
+      { 222, LEVEL_TRIGGER },
+      { 223, LEVEL_TRIGGER },
+      { 224, LEVEL_TRIGGER },
+      { 225, LEVEL_TRIGGER },
+      { 226, LEVEL_TRIGGER },
+      { 227, LEVEL_TRIGGER },
+      { 228, LEVEL_TRIGGER },
+      { 220, LEVEL_TRIGGER },
+      { 230, LEVEL_TRIGGER },
+      { 231, LEVEL_TRIGGER },
+      { 232, LEVEL_TRIGGER },
+      { 233, LEVEL_TRIGGER },
+      { 234, LEVEL_TRIGGER },
+      { 235, LEVEL_TRIGGER },
+      { 236, LEVEL_TRIGGER },
+      { 237, LEVEL_TRIGGER },
+      { 238, LEVEL_TRIGGER },
+      { 230, LEVEL_TRIGGER },
+      { 240, LEVEL_TRIGGER },
+      { 241, LEVEL_TRIGGER },
+      { 242, LEVEL_TRIGGER },
+      { 243, LEVEL_TRIGGER },
+      { 244, LEVEL_TRIGGER },
+      { 245, LEVEL_TRIGGER },
+      { 246, LEVEL_TRIGGER },
+      { 247, LEVEL_TRIGGER },
+      { 248, LEVEL_TRIGGER },
+      { 240, LEVEL_TRIGGER },
+      { 250, LEVEL_TRIGGER },
+      { 251, LEVEL_TRIGGER },
+      { 252, LEVEL_TRIGGER },
+      { 253, LEVEL_TRIGGER },
+      { 254, LEVEL_TRIGGER },
+      { 255, LEVEL_TRIGGER },
+      { 256, LEVEL_TRIGGER },
+      { 257, LEVEL_TRIGGER },
+      { 258, LEVEL_TRIGGER },
+      { 250, LEVEL_TRIGGER },
+      { 260, LEVEL_TRIGGER },
+      { 261, LEVEL_TRIGGER },
+      { 262, LEVEL_TRIGGER },
+      { 263, LEVEL_TRIGGER },
+      { 264, LEVEL_TRIGGER },
+      { 265, LEVEL_TRIGGER },
+      { 266, LEVEL_TRIGGER },
+      { 267, LEVEL_TRIGGER },
+      { 268, LEVEL_TRIGGER },
+      { 260, LEVEL_TRIGGER },
+      { 270, LEVEL_TRIGGER },
+      { 271, LEVEL_TRIGGER },
+      { 272, LEVEL_TRIGGER },
+      { 273, LEVEL_TRIGGER },
+      { 274, LEVEL_TRIGGER },
+      { 275, LEVEL_TRIGGER },
+      { 276, LEVEL_TRIGGER },
+      { 277, LEVEL_TRIGGER },
+      { 278, LEVEL_TRIGGER },
+      { 270, LEVEL_TRIGGER },
+      { 280, LEVEL_TRIGGER },
+      { 281, LEVEL_TRIGGER },
+      { 282, LEVEL_TRIGGER },
+      { 283, LEVEL_TRIGGER },
+      { 284, LEVEL_TRIGGER },
+      { 285, LEVEL_TRIGGER },
+      { 286, LEVEL_TRIGGER },
+      { 287, LEVEL_TRIGGER },
+      { 288, LEVEL_TRIGGER },
+      { 280, LEVEL_TRIGGER },
+      { 290, LEVEL_TRIGGER },
+      { 291, LEVEL_TRIGGER },
+      { 292, LEVEL_TRIGGER },
+      { 293, LEVEL_TRIGGER },
+      { 294, LEVEL_TRIGGER },
+      { 295, LEVEL_TRIGGER },
+      { 296, LEVEL_TRIGGER },
+      { 297, LEVEL_TRIGGER },
+      { 298, LEVEL_TRIGGER },
+      { 299, LEVEL_TRIGGER },
+      { 300, LEVEL_TRIGGER },
+      { 301, LEVEL_TRIGGER },
+      { 302, LEVEL_TRIGGER },
+      { 303, LEVEL_TRIGGER },
+      { 304, LEVEL_TRIGGER },
+      { 305, LEVEL_TRIGGER },
+      { 306, LEVEL_TRIGGER },
+      { 307, LEVEL_TRIGGER },
+      { 308, LEVEL_TRIGGER },
+      { 309, LEVEL_TRIGGER },
+      { 310, LEVEL_TRIGGER },
+      { 311, LEVEL_TRIGGER },
+      { 312, LEVEL_TRIGGER },
+      { 313, LEVEL_TRIGGER },
+      { 314, LEVEL_TRIGGER },
+      { 315, LEVEL_TRIGGER },
+      { 316, LEVEL_TRIGGER },
+      { 317, LEVEL_TRIGGER },
+      { 318, LEVEL_TRIGGER },
+      { 319, LEVEL_TRIGGER },
+      { 320, LEVEL_TRIGGER },
+      { 321, LEVEL_TRIGGER },
+      { 322, LEVEL_TRIGGER },
+      { 323, LEVEL_TRIGGER },
+      { 324, LEVEL_TRIGGER },
+      { 325, LEVEL_TRIGGER },
+      { 326, LEVEL_TRIGGER },
+      { 327, LEVEL_TRIGGER },
+      { 328, LEVEL_TRIGGER },
+    },
+    {  // PmuInts
+      { 329, LEVEL_TRIGGER },
+      { 330, LEVEL_TRIGGER },
+      { 331, LEVEL_TRIGGER },
+    },
+    {  // IdMapping
+      {
+      0,                                      // InputBase
+      0x10000,                                // NumberOfIds
+      0,                                      // OutputBase
+      OFFSET_OF(EFI_ACPI_6_1_IORT_STRUCTURE, ItsNode), // OutputReference
+      0                                       // Flags
+      }
+    }
+  },
+  {
+    { IORT_CRYPTO_NAMED_NODE_ENTRY(CRYPTO_0_PKA_0_ID, CRYPTO_PKA_RING_0_ID) },
+    { IORT_CRYPTO_NAMED_NODE_ENTRY(CRYPTO_0_PKA_0_ID, CRYPTO_PKA_RING_1_ID) },
+    { IORT_CRYPTO_NAMED_NODE_ENTRY(CRYPTO_0_PKA_0_ID, CRYPTO_PKA_RING_2_ID) },
+    { IORT_CRYPTO_NAMED_NODE_ENTRY(CRYPTO_0_PKA_0_ID, CRYPTO_PKA_RING_3_ID) },
+    { IORT_CRYPTO_NAMED_NODE_ENTRY(CRYPTO_0_PKA_1_ID, CRYPTO_PKA_RING_0_ID) },
+    { IORT_CRYPTO_NAMED_NODE_ENTRY(CRYPTO_0_PKA_1_ID, CRYPTO_PKA_RING_1_ID) },
+    { IORT_CRYPTO_NAMED_NODE_ENTRY(CRYPTO_0_PKA_1_ID, CRYPTO_PKA_RING_2_ID) },
+    { IORT_CRYPTO_NAMED_NODE_ENTRY(CRYPTO_0_PKA_1_ID, CRYPTO_PKA_RING_3_ID) },
+    { IORT_CRYPTO_NAMED_NODE_ENTRY(CRYPTO_1_PKA_0_ID, CRYPTO_PKA_RING_0_ID) },
+    { IORT_CRYPTO_NAMED_NODE_ENTRY(CRYPTO_1_PKA_0_ID, CRYPTO_PKA_RING_1_ID) },
+    { IORT_CRYPTO_NAMED_NODE_ENTRY(CRYPTO_1_PKA_0_ID, CRYPTO_PKA_RING_2_ID) },
+    { IORT_CRYPTO_NAMED_NODE_ENTRY(CRYPTO_1_PKA_0_ID, CRYPTO_PKA_RING_3_ID) },
+    { IORT_CRYPTO_NAMED_NODE_ENTRY(CRYPTO_1_PKA_1_ID, CRYPTO_PKA_RING_0_ID) },
+    { IORT_CRYPTO_NAMED_NODE_ENTRY(CRYPTO_1_PKA_1_ID, CRYPTO_PKA_RING_1_ID) },
+    { IORT_CRYPTO_NAMED_NODE_ENTRY(CRYPTO_1_PKA_1_ID, CRYPTO_PKA_RING_2_ID) },
+    { IORT_CRYPTO_NAMED_NODE_ENTRY(CRYPTO_1_PKA_1_ID, CRYPTO_PKA_RING_3_ID) }
+  }
+};
+
+VOID* CONST ReferenceAcpiTable = &Iort;

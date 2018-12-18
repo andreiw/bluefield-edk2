@@ -39,6 +39,7 @@ GCC_ASM_EXPORT (ArmCallWFE)
 GCC_ASM_EXPORT (ArmCallSEV)
 GCC_ASM_EXPORT (ArmReadCpuActlr)
 GCC_ASM_EXPORT (ArmWriteCpuActlr)
+GCC_ASM_EXPORT (ArmReadCpuIsar)
 
 #------------------------------------------------------------------------------
 
@@ -206,6 +207,10 @@ ASM_PFX(ArmWriteCpuActlr):
   msr   S3_1_c15_c2_0, x0
   dsb   sy
   isb
+  ret
+
+ASM_PFX(ArmReadCpuIsar):
+  mrs   x0, ID_ISAR5_EL1
   ret
 
 ASM_FUNCTION_REMOVE_IF_UNREFERENCED

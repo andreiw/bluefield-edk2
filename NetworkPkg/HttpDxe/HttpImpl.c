@@ -226,7 +226,6 @@ EfiHttpRequest (
   CHAR8                         *Url;
   CHAR16                        *HostNameStr;
   HTTP_TOKEN_WRAP               *Wrap;
-  HTTP_TCP_TOKEN_WRAP           *TcpWrap;
   CHAR8                         *FileUrl;
   
   if ((This == NULL) || (Token == NULL)) {
@@ -278,7 +277,6 @@ EfiHttpRequest (
   HostName    = NULL;
   Wrap        = NULL;
   HostNameStr = NULL;
-  TcpWrap     = NULL;
 
   //
   // Parse the URI of the remote host.

@@ -90,3 +90,19 @@ ArmUnsetCpuActlrBit (
   Value &= ~Bits;
   ArmWriteCpuActlr (Value);
 }
+
+//
+// Helper function for accessing ID_ISAR bits
+//
+
+UINTN
+EFIAPI
+ArmGetCpuIsarBit (
+  IN  UINTN    Bits
+  )
+{
+  UINTN Value;
+  Value = ArmReadCpuIsar ();
+  Value &= Bits;
+  return Value;
+}

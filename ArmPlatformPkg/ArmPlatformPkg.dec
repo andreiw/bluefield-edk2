@@ -132,7 +132,11 @@
   gArmPlatformTokenSpaceGuid.PcdFirmwareVendor|"ARM Platform"|VOID*|0x00000019
   gArmPlatformTokenSpaceGuid.PcdDefaultBootDescription|L"Default Boot Device"|VOID*|0x0000000C
   gArmPlatformTokenSpaceGuid.PcdDefaultBootDevicePath|L""|VOID*|0x0000000D
-  gArmPlatformTokenSpaceGuid.PcdDefaultBootArgument|L""|VOID*|0x000000F
+  gArmPlatformTokenSpaceGuid.PcdDefaultBootArgument|L""|VOID*|0x0000000F
+  gArmPlatformTokenSpaceGuid.PcdDefaultBootDtb|L""|VOID*|0x00000010
+  gArmPlatformTokenSpaceGuid.PcdDefaultUefiTests|L""|VOID*|0x0000000E
+  gArmPlatformTokenSpaceGuid.PcdDefaultBootAcpi|L""|VOID*|0x00000011
+  gArmPlatformTokenSpaceGuid.PcdBootParamPath|L""|VOID*|0x0000000B
 
   gArmPlatformTokenSpaceGuid.PcdDefaultConInPaths|L""|VOID*|0x0000001B
   gArmPlatformTokenSpaceGuid.PcdDefaultConOutPaths|L""|VOID*|0x0000001C
@@ -197,8 +201,8 @@
   gArmPlatformTokenSpaceGuid.PcdPciIoBase|0x0|UINT64|0x00000040
   gArmPlatformTokenSpaceGuid.PcdPciIoSize|0x0|UINT64|0x00000041
   gArmPlatformTokenSpaceGuid.PcdPciIoTranslation|0x0|UINT64|0x00000042
-  gArmPlatformTokenSpaceGuid.PcdPciMmio32Base|0x0|UINT32|0x00000043
-  gArmPlatformTokenSpaceGuid.PcdPciMmio32Size|0x0|UINT32|0x00000044
+  gArmPlatformTokenSpaceGuid.PcdPciMmio32Base|0x0|UINT64|0x00000043
+  gArmPlatformTokenSpaceGuid.PcdPciMmio32Size|0x0|UINT64|0x00000044
   gArmPlatformTokenSpaceGuid.PcdPciMmio32Translation|0x0|UINT64|0x00000045
   gArmPlatformTokenSpaceGuid.PcdPciMmio64Base|0x0|UINT64|0x00000046
   gArmPlatformTokenSpaceGuid.PcdPciMmio64Size|0x0|UINT64|0x00000047

@@ -1,0 +1,78 @@
+#/** @file
+#
+#  Copyright (c) 2013-2015, ARM Ltd. All rights reserved.<BR>
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution.  The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+#**/
+
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = BlueFieldDxe
+  FILE_GUID                      = c13111a8-6bc9-11e5-8797-001aca00bfc4
+  MODULE_TYPE                    = UEFI_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = BlueFieldInitialize
+
+[Sources]
+  BlueFieldDxe.c
+  AArch64/BlueFieldDxeAArch64.c
+  BlueFieldNvdimm.c
+  BlueFieldMadt.c
+  BlueFieldAcpiPatch.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  ArmPkg/ArmPkg.dec
+  ArmPlatformPkg/ArmPlatformPkg.dec
+  EmbeddedPkg/EmbeddedPkg.dec
+  MlxPlatformPkg/MlxPlatformPkg.dec
+
+[LibraryClasses]
+  AcpiLib
+  BootParamFileSystemLib
+  PcdLib
+  ArmShellCmdRunAxfLib
+  ArmLib
+  BaseMemoryLib
+  DxeServicesTableLib
+  IoLib
+  MemoryAllocationLib
+  UefiDriverEntryPoint
+  UefiBootServicesTableLib
+  DevicePathLib
+
+[Guids]
+  ## CONSUMES             ## HII
+  gMlxSysConfigGuid
+
+[Protocols]
+  gEfiDevicePathProtocolGuid
+  gEfiAcpiTableProtocolGuid
+
+[FixedPcd]
+  gMlxPlatformTokenSpaceGuid.PcdRshimBase
+  gMlxPlatformTokenSpaceGuid.PcdFdtBf2
+  gMlxPlatformTokenSpaceGuid.PcdFdtBf4
+  gMlxPlatformTokenSpaceGuid.PcdFdtBf16
+  gMlxPlatformTokenSpaceGuid.PcdFdtBfMini
+  gMlxPlatformTokenSpaceGuid.PcdFdtBfFull
+  gArmTokenSpaceGuid.PcdSystemMemoryBase
+  gArmPlatformTokenSpaceGuid.PcdCoreCount
+  gArmTokenSpaceGuid.PcdGicDistributorBase
+  gArmTokenSpaceGuid.PcdGicRedistributorsBase
+  gArmTokenSpaceGuid.PcdGicRedistributorsLength
+  gArmTokenSpaceGuid.PcdGicInterruptInterfaceBase
+  gArmTokenSpaceGuid.PcdGicITSBase
+
+[Pcd]
+  gArmPlatformTokenSpaceGuid.PcdDefaultBootDtb
+  gArmPlatformTokenSpaceGuid.PcdDefaultBootAcpi
+  gEmbeddedTokenSpaceGuid.PcdFdtDevicePaths

@@ -185,6 +185,18 @@ extern EFI_DRIVER_DIAGNOSTICS2_PROTOCOL gMmcDriverDiagnostics2;
 extern LIST_ENTRY mMmcHostPool;
 
 /**
+ * This Function runs Power-On System Test for MMC
+ *
+  @param  ControllerHandle    Handle for the MMC Controller 
+  @param  ChildHandle         Handle for the MMC Child
+**/
+extern EFI_STATUS EFIAPI
+MmcDriverDiagnosticsRunPost (
+  IN  EFI_HANDLE                                    ControllerHandle,
+  IN  EFI_HANDLE                                    ChildHandle  OPTIONAL
+  );
+
+/**
   Reset the block device.
 
   This function implements EFI_BLOCK_IO_PROTOCOL.Reset().

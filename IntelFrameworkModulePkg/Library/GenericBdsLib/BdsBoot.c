@@ -2326,7 +2326,7 @@ BdsLibBootViaBootOption (
       // Update the shell boot option
       //
       InitializeListHead (&TempBootLists);
-      BdsLibRegisterNewOption (&TempBootLists, DevicePath, L"EFI Internal Shell", L"BootOrder");
+      BdsLibRegisterNewOption (&TempBootLists, DevicePath, L"EFI Internal Shell", NULL, L"BootOrder");
 
       //
       // free the temporary device path created by BdsLibUpdateFvFileDevicePath()
@@ -2414,12 +2414,6 @@ BdsLibBootViaBootOption (
   // Clean to NULL because the image is loaded directly from the firmwares boot manager.
   //
   ImageInfo->ParentHandle = NULL;
-
-  //
-  // Before calling the image, enable the Watchdog Timer for
-  // the 5 Minute period
-  //
-  gBS->SetWatchdogTimer (5 * 60, 0x0000, 0x00, NULL);
 
   //
   // Write boot to OS performance data for UEFI boot
@@ -3467,7 +3461,7 @@ BdsLibBuildOptionFromHandle (
   //
   // Create and register new boot option
   //
-  BdsLibRegisterNewOption (BdsBootOptionList, DevicePath, String, L"BootOrder");
+  BdsLibRegisterNewOption (BdsBootOptionList, DevicePath, String, NULL, L"BootOrder");
 }
 
 
@@ -3502,7 +3496,7 @@ BdsLibBuildOptionFromShell (
   //
   // Create and register the shell boot option
   //
-  BdsLibRegisterNewOption (BdsBootOptionList, DevicePath, L"EFI Internal Shell", L"BootOrder");
+  BdsLibRegisterNewOption (BdsBootOptionList, DevicePath, L"EFI Internal Shell", NULL, L"BootOrder");
 
 }
 

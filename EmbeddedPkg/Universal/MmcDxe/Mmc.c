@@ -23,6 +23,7 @@
 
 #include "Mmc.h"
 
+
 EFI_BLOCK_IO_MEDIA mMmcMediaTemplate = {
   SIGNATURE_32('m','m','c','o'),            // MediaId
   TRUE,                                     // RemovableMedia
@@ -302,12 +303,10 @@ MmcDriverBindingStart (
     CheckCardsCallback (NULL, NULL);
   }
 
-  return EFI_SUCCESS;
+  Status =  MmcDriverDiagnosticsRunPost( NULL, NULL);
+  return Status;
 }
 
-/**
-
-**/
 EFI_STATUS
 EFIAPI
 MmcDriverBindingStop (

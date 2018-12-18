@@ -44,6 +44,11 @@ VARIABLE_INFO_ENTRY *gVariableInfo = NULL;
 
   @param[in] Variable           The variable information which is used to keep track of variable usage.
 
+  @param[in] DidReclaim         Whether Reclaim() has already been tried.  Normal calls to this function
+                                are expected to set this parameter to FALSE.  This parameter is set to
+                                TRUE when this function calls itself after a Reclaim() has already been
+                                tried.
+
   @retval EFI_SUCCESS           The update operation is success.
 
   @retval EFI_OUT_OF_RESOURCES  Variable region is full, can not write other data into this region.
@@ -57,7 +62,8 @@ UpdateVariable (
   IN      VOID                   *Data,
   IN      UINTN                  DataSize,
   IN      UINT32                 Attributes OPTIONAL,
-  IN      VARIABLE_POINTER_TRACK *Variable
+  IN      VARIABLE_POINTER_TRACK *Variable,
+  IN      BOOLEAN                DidReclaim
   );
 
 /**
@@ -132,6 +138,26 @@ ReleaseLockOnlyAtBootTime (
   if (!EfiAtRuntime ()) {
     EfiReleaseLock (Lock);
   }
+}
+
+/**
+
+  This code checks if variable header is valid or not.
+
+  @param Variable           Pointer to the Variable Header.
+  @param VariableStoreEnd   Pointer to the Variable Store End.
+
+  @retval TRUE              Variable header is valid.
+  @retval FALSE             Variable header is not valid.
+
+**/
+BOOLEAN
+IsValidVariableHeader (
+  IN  VARIABLE_HEADER       *Variable,
+  IN  VARIABLE_HEADER       *VariableStoreEnd
+  )
+{
+  return Variable != NULL && Variable < VariableStoreEnd && Variable->StartId == VARIABLE_DATA;
 }
 
 /**
@@ -250,6 +276,22 @@ InitializeLocationForLastVariableOffset (
 }
 
 /**
+  Gets the pointer to the first variable header in given variable store area.
+
+  @param VarStoreHeader  Pointer to the Variable Store Header.
+
+  @return Pointer to the first variable header.
+
+**/
+VARIABLE_HEADER *
+GetStartPointer (
+  IN VARIABLE_STORE_HEADER *Header
+  )
+{
+  return (VARIABLE_HEADER *) HEADER_ALIGN (Header + 1);
+}
+
+/**
   Gets pointer to the end of the variable storage area.
 
   This function gets pointer to the end of the variable storage
@@ -269,6 +311,158 @@ GetEndPointer (
   // The end of variable store
   //
   return (VARIABLE_HEADER *) HEADER_ALIGN ((UINTN) VolHeader + VolHeader->Size);
+}
+
+/**
+
+  Variable store garbage collection and reclaim operation.
+
+  @param[in]      VariableBase            Base address of variable store.
+  @param[out]     LastVariableOffset      Offset of last variable.
+  @param[in]      IsVolatile              WHether the variable store is volatile.
+  @param[in, out] UpdatingPtrTrack        Pointer to updating variable pointer track structure.
+  @param[in]      NewVariable             Pointer to new variable.
+  @param[in]      NewVariableSize         New variable size.
+
+  @retval EFI_SUCCESS                  Reclaim operation has finished successfully.
+  @retval EFI_OUT_OF_RESOURCES         No enough memory resources or variable space.
+  @retval Others                       Unexpected error happened during reclaim operation.
+
+**/
+EFI_STATUS
+Reclaim (
+  IN     EFI_PHYSICAL_ADDRESS         VariableBase,
+  OUT    UINTN                       *LastVariableOffset,
+  IN     BOOLEAN                      IsVolatile,
+  IN OUT VARIABLE_POINTER_TRACK      *UpdatingPtrTrack,
+  IN     VARIABLE_HEADER             *NewVariable,
+  IN     UINTN                        NewVariableSize
+  )
+{
+  VARIABLE_HEADER       *Variable;
+  VARIABLE_HEADER       *NextVariable;
+  VARIABLE_STORE_HEADER *VariableStoreHeader;
+  UINT8                 *Store;
+  VARIABLE_STORE_HEADER *StoreHeader;
+  UINTN                  Size;
+  UINT8                 *CurrPtr;
+  EFI_STATUS             Status;
+  UINTN                  CommonVariableTotalSize;
+  UINTN                  HwErrVariableTotalSize;
+  VARIABLE_HEADER       *UpdatingVariable;
+
+  UpdatingVariable = NULL;
+  if (UpdatingPtrTrack != NULL) {
+    UpdatingVariable = UpdatingPtrTrack->CurrPtr;
+  }
+
+  VariableStoreHeader = (VARIABLE_STORE_HEADER *) VariableBase;
+
+  CommonVariableTotalSize = 0;
+  HwErrVariableTotalSize  = 0;
+
+  //
+  // Allocate a temporary buffer large enough to hold all the
+  // variables.
+  //
+  Size = *LastVariableOffset + NewVariableSize;
+  DEBUG ((EFI_D_VARIABLE, "Variable Reclaim(): %a initial size %d\n",
+          IsVolatile ? "Vol" : "NV", Size));
+  Store = AllocatePool (Size);
+  if (Store == NULL) {
+    return EFI_OUT_OF_RESOURCES;
+  }
+  SetMem (Store, Size, 0xff);
+  StoreHeader = (VARIABLE_STORE_HEADER *) Store;
+
+  //
+  // Copy variable store header.
+  //
+  CopyMem (Store, VariableStoreHeader, sizeof (VARIABLE_STORE_HEADER));
+  CurrPtr = (UINT8 *) GetStartPointer (StoreHeader);
+
+  //
+  // Reinstall all ADDED variables as long as they are not identical to Updating Variable.
+  // Also Sanity check that if a variable is in deleted transition variable, it is the
+  // UpdatingVariable.
+  //
+  Variable = GetStartPointer (VariableStoreHeader);
+  while (IsValidVariableHeader (Variable, GetEndPointer (VariableStoreHeader))) {
+    NextVariable = GetNextPotentialVariablePtr (Variable);
+    if (Variable->State == VAR_ADDED && Variable != UpdatingVariable) {
+      Size = (UINTN) NextVariable - (UINTN) Variable;
+      CopyMem (CurrPtr, Variable, Size);
+      CurrPtr += Size;
+      if (!IsVolatile) {
+        if ((Variable->Attributes & EFI_VARIABLE_HARDWARE_ERROR_RECORD) != 0) {
+          HwErrVariableTotalSize += Size;
+        } else {
+          CommonVariableTotalSize += Size;
+        }
+      }
+    } else if (Variable->State == (VAR_IN_DELETED_TRANSITION & VAR_ADDED)) {
+      ASSERT (Variable == UpdatingVariable);
+    }
+    Variable = NextVariable;
+  }
+
+  //
+  // Install the new variable if it is not NULL.
+  //
+  if (NewVariable != NULL) {
+    if (CurrPtr - Store + NewVariableSize > VariableStoreHeader->Size) {
+      //
+      // Out of space.
+      //
+      Status = EFI_OUT_OF_RESOURCES;
+      goto Done;
+    }
+    if (!IsVolatile) {
+      if ((NewVariable->Attributes & EFI_VARIABLE_HARDWARE_ERROR_RECORD) != 0) {
+        HwErrVariableTotalSize += NewVariableSize;
+      } else {
+        CommonVariableTotalSize += NewVariableSize;
+      }
+      //
+      // HWErrVariable out of space.
+      //
+      if (HwErrVariableTotalSize > PcdGet32 (PcdHwErrStorageSize) ||
+          CommonVariableTotalSize > (VariableStoreHeader->Size - sizeof (VARIABLE_STORE_HEADER) -
+                                     PcdGet32 (PcdHwErrStorageSize))) {
+        Status = EFI_OUT_OF_RESOURCES;
+        goto Done;
+      }
+    }
+
+    CopyMem (CurrPtr, NewVariable, NewVariableSize);
+    ((VARIABLE_HEADER *) CurrPtr)->State = VAR_ADDED;
+    if (UpdatingVariable != NULL) {
+      UpdatingPtrTrack->CurrPtr =
+        (VARIABLE_HEADER *)((UINTN)UpdatingPtrTrack->StartPtr +
+                            (CurrPtr - (UINT8 *)GetStartPointer (StoreHeader)));
+    }
+    CurrPtr += NewVariableSize;
+  }
+
+  //
+  // Copy buffer to variable base.
+  //
+  Status = EFI_SUCCESS;
+  SetMem (VariableStoreHeader, VariableStoreHeader->Size, 0xff);
+  CopyMem (VariableStoreHeader, Store, CurrPtr - Store);
+  *LastVariableOffset = CurrPtr - Store;
+  if (!IsVolatile) {
+    mVariableModuleGlobal->HwErrVariableTotalSize = HwErrVariableTotalSize;
+    mVariableModuleGlobal->CommonVariableTotalSize = CommonVariableTotalSize;
+  }
+
+  DEBUG ((EFI_D_VARIABLE, "Variable Reclaim(): %a final size %d\n",
+          IsVolatile ? "Vol" : "NV", *LastVariableOffset));
+
+Done:
+  FreePool (Store);
+
+  return Status;
 }
 
 /**
@@ -816,7 +1010,7 @@ AutoUpdateLangVariable(
         //
         FindVariable (L"Lang", &gEfiGlobalVariableGuid, &Variable, (VARIABLE_GLOBAL *)mVariableModuleGlobal);
 
-        Status = UpdateVariable (L"Lang", &gEfiGlobalVariableGuid, BestLang, ISO_639_2_ENTRY_SIZE + 1, Attributes, &Variable);
+        Status = UpdateVariable (L"Lang", &gEfiGlobalVariableGuid, BestLang, ISO_639_2_ENTRY_SIZE + 1, Attributes, &Variable, FALSE);
 
         DEBUG ((EFI_D_INFO, "Variable Driver Auto Update PlatformLang, PlatformLang:%a, Lang:%a\n", BestPlatformLang, BestLang));
 
@@ -850,7 +1044,7 @@ AutoUpdateLangVariable(
         FindVariable (L"PlatformLang", &gEfiGlobalVariableGuid, &Variable, (VARIABLE_GLOBAL *)mVariableModuleGlobal);
 
         Status = UpdateVariable (L"PlatformLang", &gEfiGlobalVariableGuid, BestPlatformLang, 
-                                 AsciiStrSize (BestPlatformLang), Attributes, &Variable);
+                                 AsciiStrSize (BestPlatformLang), Attributes, &Variable, FALSE);
 
         DEBUG ((EFI_D_INFO, "Variable Driver Auto Update Lang, Lang:%a, PlatformLang:%a\n", BestLang, BestPlatformLang));
         ASSERT_EFI_ERROR (Status);
@@ -875,6 +1069,11 @@ AutoUpdateLangVariable(
 
   @param[in] Variable           The variable information which is used to keep track of variable usage.
 
+  @param[in] DidReclaim         Whether Reclaim() has already been tried.  Normal calls to this function
+                                are expected to set this parameter to FALSE.  This parameter is set to
+                                TRUE when this function calls itself after a Reclaim() has already been
+                                tried.
+
   @retval EFI_SUCCESS           The update operation is success.
 
   @retval EFI_OUT_OF_RESOURCES  Variable region is full, can not write other data into this region.
@@ -888,7 +1087,8 @@ UpdateVariable (
   IN      VOID            *Data,
   IN      UINTN           DataSize,
   IN      UINT32          Attributes OPTIONAL,
-  IN      VARIABLE_POINTER_TRACK *Variable
+  IN      VARIABLE_POINTER_TRACK *Variable,
+  IN      BOOLEAN         DidReclaim
   )
 {
   EFI_STATUS              Status;
@@ -903,6 +1103,12 @@ UpdateVariable (
   Global = &mVariableModuleGlobal->VariableGlobal[Physical];
 
   if (Variable->CurrPtr != NULL) {
+    //
+    // If Reclaim() has happened, it would have invalidated pointer to
+    // old copies of this variable.
+    //
+    ASSERT (!DidReclaim);
+
     //
     // Update/Delete existing variable
     //
@@ -1056,6 +1262,22 @@ UpdateVariable (
   Status = EFI_SUCCESS;
 
 Done:
+  if (Status == EFI_OUT_OF_RESOURCES && !DidReclaim) {
+    if ((Attributes & EFI_VARIABLE_NON_VOLATILE) != 0) {
+      Status = Reclaim (Global->NonVolatileVariableBase, &mVariableModuleGlobal->NonVolatileLastVariableOffset,
+                        FALSE, Variable, NULL, 0);
+    } else {
+      Status = Reclaim (Global->VolatileVariableBase, &mVariableModuleGlobal->VolatileLastVariableOffset,
+                        TRUE, Variable, NULL, 0);
+    }
+    ASSERT_EFI_ERROR (Status);
+
+    // Reclaim would have deleted any existing instance of this
+    // variable, so reset the pointer to that.
+    Variable->CurrPtr = NULL;
+    return UpdateVariable (VariableName, VendorGuid, Data, DataSize, Attributes, Variable, TRUE);
+  }
+
   return Status;
 }
 
@@ -1444,7 +1666,7 @@ EmuSetVariable (
   //
   AutoUpdateLangVariable (VariableName, Data, DataSize);
 
-  Status = UpdateVariable (VariableName, VendorGuid, Data, DataSize, Attributes, &Variable);
+  Status = UpdateVariable (VariableName, VendorGuid, Data, DataSize, Attributes, &Variable, FALSE);
 
   ReleaseLockOnlyAtBootTime (&Global->VariableServicesLock);
   return Status;
