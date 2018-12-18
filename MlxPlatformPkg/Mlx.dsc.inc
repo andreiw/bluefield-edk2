@@ -128,6 +128,9 @@
   OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLib.inf
   IntrinsicLib|CryptoPkg/Library/IntrinsicLib/IntrinsicLib.inf
 
+  # USB
+  UefiUsbLib|MdePkg/Library/UefiUsbLib/UefiUsbLib.inf
+
   #
   # Secure Boot dependencies
   #
