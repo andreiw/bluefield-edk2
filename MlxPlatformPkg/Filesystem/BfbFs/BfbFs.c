@@ -239,7 +239,7 @@ BfbFileToId (
   // need to change a similar table in the mkbfb tool, which generates
   // BlueField boot streams.  If you change the BootXXX filenames, you will
   // need to change the names in
-  // ArmPlatformPkg/Library/PlatformIntelBdsLib/DefaultBootOptions.c,
+  // MlnxPlatformPkg/Library/PlatformBdsLib/DefaultBootOption.c,
   // and if you change the other filenames, you'll need to change the command
   // line passed to the Linux kernel.
   STATIC CONST struct FileToId FileToId[] = {
