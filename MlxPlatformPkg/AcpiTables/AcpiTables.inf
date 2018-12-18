@@ -24,6 +24,7 @@
   SsdtNvdimm.asl
   SsdtCrypto.asl
   SsdtCryptoMin.asl
+  Spcr.asl
 
 [Packages]
   MlxPlatformPkg/MlxPlatformPkg.dec

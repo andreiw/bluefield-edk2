@@ -86,6 +86,7 @@
 #define EFI_ACPI_MLNX_OEM_TABLE_ID_SPMI         SIGNATURE_64('M','L','X','-','B','F','0','6') // OEM table id (8B)
 #define EFI_ACPI_MLNX_OEM_TABLE_ID_IORT         SIGNATURE_64('M','L','X','-','B','F','0','7') // OEM table id (8B)
 #define EFI_ACPI_MLNX_OEM_TABLE_ID_CRYPTO_MIN   SIGNATURE_64('M','L','X','-','B','F','0','8') // OEM table id (8B)
+#define EFI_ACPI_MLNX_OEM_TABLE_ID_SPCR         SIGNATURE_64('M','L','X','-','B','F','F','F') // OEM table id (8B)
 #define EFI_ACPI_MLNX_OEM_TABLE_ID_DSDT_STR         "MLX-BF01"
 #define EFI_ACPI_MLNX_OEM_TABLE_ID_PCI_STR          "MLX-BF02"
 #define EFI_ACPI_MLNX_OEM_TABLE_ID_NVDIMM_STR       "MLX-BF03"
@@ -94,6 +95,7 @@
 #define EFI_ACPI_MLNX_OEM_TABLE_ID_SPMI_STR         "MLX-BF06"
 #define EFI_ACPI_MLNX_OEM_TABLE_ID_IORT_STR         "MLX-BF07"
 #define EFI_ACPI_MLNX_OEM_TABLE_ID_CRYPTO_MIN_STR   "MLX-BF08"
+#define EFI_ACPI_MLNX_OEM_TABLE_ID_SPCR_STR         "MLX-BFFF"
 
 // A macro to initialise the common header part of EFI ACPI tables as defined by
 // EFI_ACPI_DESCRIPTION_HEADER structure.

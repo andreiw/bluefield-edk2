@@ -151,6 +151,12 @@ BlueFieldAcpiCheck (
     // Return FALSE here to skip the PCI table if needed.
     break;
 
+  case EFI_ACPI_MLNX_OEM_TABLE_ID_SPCR:
+    //
+    // Possibly patch in the future if required.
+    //
+    break;
+
   case EFI_ACPI_MLNX_OEM_TABLE_ID_IORT: {
     EFI_ACPI_6_1_IORT_STRUCTURE *Iort;
 
