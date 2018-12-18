@@ -555,8 +555,6 @@
 //
 DefinitionBlock ("Ssdt.aml", "SSDT", 6, EFI_ACPI_MLNX_OEM_ID_STR, EFI_ACPI_MLNX_OEM_TABLE_ID_NVDIMM_STR, EFI_ACPI_MLNX_OEM_REVISION)
 {
-  External (\_SB.I2C1, DeviceObj)
-
   Scope (\_SB)
   {
     // I2C SMBus Host Controller
