@@ -81,7 +81,7 @@ DATA = {
   0x00, 0x00, 0x00, 0x00   # type / num
 }
 
-0x00001000|0x00124000
+0x00001000|0x00200000
 gArmTokenSpaceGuid.PcdFvBaseAddress|gArmTokenSpaceGuid.PcdFvSize
 FV = FVMAIN_COMPACT
 
@@ -195,7 +195,6 @@ READ_LOCK_STATUS   = TRUE
   # BlueField boot stream filesystem
   #
   INF MlxPlatformPkg/Filesystem/BfbFs/BfbFs.inf
-  INF MdeModulePkg/Universal/Disk/RamDiskDxe/RamDiskDxe.inf
 
   #
   # USB support (i.e. for plug-in xHCI host).
@@ -269,6 +268,7 @@ READ_LOCK_STATUS   = TRUE
   INF MdeModulePkg/Universal/DevicePathDxe/DevicePathDxe.inf
   INF MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
   INF MdeModulePkg/Universal/SetupBrowserDxe/SetupBrowserDxe.inf
+  INF MdeModulePkg/Universal/Disk/RamDiskDxe/RamDiskDxe.inf
   INF IntelFrameworkModulePkg/Universal/BdsDxe/BdsDxe.inf
 
   #
