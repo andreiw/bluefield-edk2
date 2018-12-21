@@ -308,6 +308,7 @@
   # BlueField boot stream filesystem
   #
   MlxPlatformPkg/Filesystem/BfbFs/BfbFs.inf
+  MdeModulePkg/Universal/Disk/RamDiskDxe/RamDiskDxe.inf
 
   #
   # Platform Driver

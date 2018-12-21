@@ -195,6 +195,7 @@ READ_LOCK_STATUS   = TRUE
   # BlueField boot stream filesystem
   #
   INF MlxPlatformPkg/Filesystem/BfbFs/BfbFs.inf
+  INF MdeModulePkg/Universal/Disk/RamDiskDxe/RamDiskDxe.inf
 
   #
   # USB support (i.e. for plug-in xHCI host).
