@@ -16,6 +16,9 @@
 
 #include "BdsPlatform.h"
 #include "BlueFieldPlatform.h"
+#include <Library/SortLib.h>
+#include <Library/PrintLib.h>
+#include <Protocol/RamDisk.h>
 
 typedef UINT8 MLNX_EFI_BOOT_SETUP;
 
@@ -41,6 +44,9 @@ typedef UINT8 MLNX_EFI_BOOT_SETUP;
 #define MLNX_DEFAULT_BOOT_SETUP      0
 
 
+static CHAR16 *RamCDDesc = L"Virtual CD";
+static CHAR16 *RamDiskDesc = L"Virtual Disk";
+
 /**
   Get boot setup by looking up the external boot flag in Mellanox-based
   platform information.
@@ -57,6 +63,128 @@ MlnxGetBootSetup (
 {
   *BootSetup = MLNX_BOOT_SETUP_FLAG;
   return EFI_SUCCESS;
+}
+
+/**
+  Clean any RAM disk boot options.
+
+**/
+STATIC
+VOID
+CleanRamDiskBootOptions (
+  VOID
+  )
+{
+  UINTN Index;
+  UINT16 *BootOrder;
+  UINT16 BootOption[10];
+  UINTN BootOrderSize;
+  UINTN BootOptionSize;
+  UINT8 *BootOptionVar;
+  EFI_STATUS Status;
+  CHAR16 *Desc;
+
+  BootOrder = BdsLibGetVariableAndSize (
+                L"BootOrder",
+                &gEfiGlobalVariableGuid,
+                &BootOrderSize
+                );
+  if (BootOrder == NULL) {
+    return;
+  }
+
+  for (Index = 0; Index < BootOrderSize / sizeof (UINT16); Index++ ) {
+    UnicodeSPrint (BootOption, sizeof (BootOption), L"Boot%04x", BootOrder[Index]);
+    BootOptionVar = BdsLibGetVariableAndSize (
+                      BootOption,
+                      &gEfiGlobalVariableGuid,
+                      &BootOptionSize
+                      );
+    /*
+     * Ewww.. this is hard-coded all-over the place.
+     */
+    Desc = (VOID *)(BootOptionVar + sizeof (UINT32) + sizeof (UINT16));
+    if (BootOptionVar == NULL ||
+        /*
+         * Could have/should have checked the device path, but meh.
+         */
+        StringCompare (&Desc, &RamCDDesc) == 0 ||
+        StringCompare (&Desc, &RamDiskDesc) == 0
+        ) {
+      if (BootOptionVar != NULL) {
+        DEBUG ((EFI_D_INFO, "Deleting '%s'\n", Desc));
+      }
+      BdsDeleteBootOption (
+        BootOrder[Index],
+        BootOrder,
+        &BootOrderSize
+        );
+    }
+
+    FreePool (BootOptionVar);
+  }
+
+  Status = gRT->SetVariable (
+    L"BootOrder",
+    &gEfiGlobalVariableGuid,
+    EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
+    BootOrderSize,
+    BootOrder
+    );
+
+  //
+  // Shrinking variable with existing variable implementation shouldn't fail.
+  //
+  ASSERT_EFI_ERROR (Status);
+
+  FreePool (BootOrder);
+}
+
+
+/**
+  Load a RAM disk, and return the device path to it.
+
+  @param IsCd                    True if RAM disk is a virtual CD.
+
+**/
+STATIC
+EFI_DEVICE_PATH *
+RegisterRamDisk (
+  IN  BOOLEAN IsCd
+  )
+{
+  EFI_STATUS Status;
+  EFI_RAM_DISK_PROTOCOL *RamDisk;
+  EFI_DEVICE_PATH *Path;
+  VOID *Buffer;
+  UINTN Size;
+
+  Status = gBS->LocateProtocol (&gEfiRamDiskProtocolGuid, NULL, (VOID **) &RamDisk);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((EFI_D_ERROR, "%a: no RAM Disk Protocol: %r\n", __FILE__, Status));
+    return NULL;
+  }
+
+  DEBUG((EFI_D_INFO, "Loading RAM disk...\n"));
+  Buffer = BootParamFileSystemGetBuffer("ramdisk", NULL, &Size);
+  if (Buffer == NULL) {
+    DEBUG ((EFI_D_ERROR, "%a: couldn't load RAM disk\n", __FILE__));
+    return NULL;
+  }
+
+  Status = RamDisk->Register (
+             (UINTN) Buffer, Size, IsCd ?
+             &gEfiVirtualCdGuid : &gEfiVirtualDiskGuid,
+             NULL, &Path
+             );
+  if (EFI_ERROR (Status)) {
+    DEBUG ((EFI_D_ERROR, "%a: couldn't register RAM disk: %r\n",
+            __FILE__, Status));
+    FreePool (Buffer);
+    return NULL;
+  }
+
+  return Path;
 }
 
 /**
@@ -79,7 +207,9 @@ CreateDefaultBootOption (
   CHAR16*                             BootDescription;
   CHAR16*                             BootDevicePathText;
   CHAR16*                             BootArgument;
-  EFI_DEVICE_PATH*                    BootDevicePath;
+  EFI_DEVICE_PATH*                    BootDevicePath = NULL;
+  CHAR16*                             DoRamDisk = L"ramdisk";
+  CHAR16*                             DoRamCD = L"ramcd";
 
   BootDescription    = (CHAR16 *)BPO_PcdGetPtr (PcdDefaultBootDescription);
   BootDevicePathText = (CHAR16 *)BPO_PcdGetPtr (PcdDefaultBootDevicePath);
@@ -89,9 +219,25 @@ CreateDefaultBootOption (
                                 (VOID **)&EfiDevicePathFromTextProtocol);
   ASSERT_EFI_ERROR (Status);
 
+  CleanRamDiskBootOptions();
+
   DEBUG ((EFI_D_INFO, "CreateDefaultBootOption %s\n", BootDevicePathText));
 
-  BootDevicePath = EfiDevicePathFromTextProtocol->ConvertTextToDevicePath (BootDevicePathText);
+  if (StringCompare (&BootDevicePathText, &DoRamDisk) == 0) {
+    //
+    // Mount the RAM disk and boot from it.
+    //
+    BootDevicePath = RegisterRamDisk(FALSE);
+    BootDescription = RamDiskDesc;
+  } else if (StringCompare (&BootDevicePathText, &DoRamCD) == 0) {
+    //
+    // Mount the RAM virtual CD and boot from it.
+    //
+    BootDevicePath = RegisterRamDisk(TRUE);
+    BootDescription = RamCDDesc;
+  } else {
+    BootDevicePath = EfiDevicePathFromTextProtocol->ConvertTextToDevicePath (BootDevicePathText);
+  }
 
   if (BootDevicePath == NULL) {
     return EFI_UNSUPPORTED;

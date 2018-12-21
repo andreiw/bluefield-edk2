@@ -33,6 +33,25 @@
 
 /**
   Look up a provided name in the boot parameter filesystem, after
+  removing an optional prefix.  If the file is present, return a pointer
+  to a buffer with the contents of the file, which will have been
+  allocated from the pool. If not, return NULL.
+
+  @param EntryName   Name to look up.
+  @param Prefix      Prefix to remove.
+  @param OutSize     Pointer to store the size.
+  @return A pointer as described above.
+
+**/
+CHAR8 *
+BootParamFileSystemGetBuffer (
+  IN  CONST CHAR8 *EntryName,
+  IN  CONST CHAR8 *Prefix,
+  OUT UINTN *OutSize
+  );
+
+/**
+  Look up a provided name in the boot parameter filesystem, after
   removing an optional "PcdDefault" prefix.  If the file is present,
   return a pointer to a Unicode string derived from the ASCII contents
   of the file.  If not, return the given default pointer.  Note that,

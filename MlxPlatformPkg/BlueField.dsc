@@ -308,7 +308,6 @@
   # BlueField boot stream filesystem
   #
   MlxPlatformPkg/Filesystem/BfbFs/BfbFs.inf
-  MdeModulePkg/Universal/Disk/RamDiskDxe/RamDiskDxe.inf
 
   #
   # Platform Driver
@@ -337,4 +336,5 @@
   MdeModulePkg/Universal/DevicePathDxe/DevicePathDxe.inf
   MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
   MdeModulePkg/Universal/SetupBrowserDxe/SetupBrowserDxe.inf
+  MdeModulePkg/Universal/Disk/RamDiskDxe/RamDiskDxe.inf
   IntelFrameworkModulePkg/Universal/BdsDxe/BdsDxe.inf

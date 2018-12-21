@@ -32,6 +32,7 @@
 
 #include <Protocol/DevicePath.h>
 #include <Protocol/SimpleFileSystem.h>
+#include <Protocol/RamDisk.h>
 
 #include "BfbFs.h"
 
@@ -243,10 +244,11 @@ BfbFileToId (
   // and if you change the other filenames, you'll need to change the command
   // line passed to the Linux kernel.
   STATIC CONST struct FileToId FileToId[] = {
-    { L"initramfs", 63 },
-    { L"Image", 62 },
-    { L"UefiTests", 61 },
-    { L"BootTimeOut", 60 },
+    { L"initramfs", 64 },
+    { L"Image", 63 },
+    { L"UefiTests", 62 },
+    { L"BootTimeOut", 61 },
+    { L"ramdisk", 60 },
     { L"BootArgument", 59 },
     { L"BootDevicePath", 58 },
     { L"BootDescription", 57 },
