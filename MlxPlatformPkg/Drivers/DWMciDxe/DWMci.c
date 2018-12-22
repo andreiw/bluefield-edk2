@@ -36,6 +36,9 @@ STATIC int cardId = 0;
 #define DWMCI_CLK_400KHZ_DIVIDER (DWMCI_CLK / (400000 * 2))
 #define DWMCI_CLK_24MHZ_DIVIDER  (DWMCI_CLK / (24000000 * 2))
 
+#undef MemoryFence
+#define MemoryFence() asm volatile ("dsb sy" ::: "memory");
+
 BOOLEAN
 DWMciIsCardPresent (
   IN EFI_MMC_HOST_PROTOCOL     *This
