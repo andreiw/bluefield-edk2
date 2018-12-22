@@ -308,11 +308,6 @@ NotifyPhase(
   switch (Phase) {
 
   case EfiPciHostBridgeBeginEnumeration:
-    // Disable data cache.
-    ArmCleanInvalidateDataCache ();
-    ArmDisableDataCache ();
-    ArmCleanInvalidateDataCache ();
-
     if (HostBridgeInstance->CanRestarted) {
       //
       // Reset the Each Root Bridge

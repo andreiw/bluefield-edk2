@@ -209,10 +209,10 @@ EfiAttributeToArmAttribute (
     ArmAttributes = TT_ATTR_INDX_MEMORY_NON_CACHEABLE;
     break;
   case EFI_MEMORY_WT:
-    ArmAttributes = TT_ATTR_INDX_MEMORY_WRITE_THROUGH;
+    ArmAttributes = TT_ATTR_INDX_MEMORY_WRITE_THROUGH | TT_SH_INNER_SHAREABLE;
     break;
   case EFI_MEMORY_WB:
-    ArmAttributes = TT_ATTR_INDX_MEMORY_WRITE_BACK;
+    ArmAttributes = TT_ATTR_INDX_MEMORY_WRITE_BACK | TT_SH_INNER_SHAREABLE;
     break;
   default:
     DEBUG ((EFI_D_ERROR, "EfiAttributeToArmAttribute: 0x%lX attributes is not supported.\n", EfiAttributes));

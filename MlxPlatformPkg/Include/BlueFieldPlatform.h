@@ -21,10 +21,6 @@
 // Platform Memory Map
 ******************************************************************************/
 
-// Boot code/data.
-#define BLUEFIELD_REMAP_BASE                      0x00000000
-#define BLUEFIELD_REMAP_SZ                        SIZE_8MB
-
 // UARTs and other rshim peripherals.
 #define BLUEFIELD_RSHIM_BASE                      0x00800000
 #define BLUEFIELD_RSHIM_SZ                        (SIZE_16MB + SIZE_8MB)

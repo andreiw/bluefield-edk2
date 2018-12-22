@@ -27,7 +27,7 @@
 #include "rsh_def.h"
 
 // Number of Virtual Memory Map Descriptors
-#define MAX_VIRTUAL_MEMORY_MAP_DESCRIPTORS          13
+#define MAX_VIRTUAL_MEMORY_MAP_DESCRIPTORS          12
 
 // DDR attributes
 #define DDR_ATTRIBUTES_CACHED           ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK
@@ -105,25 +105,8 @@ ArmPlatformGetVirtualMemoryMap (
       CacheAttributes = DDR_ATTRIBUTES_UNCACHED;
   }
 
-  // ReMap (Either NOR Flash or DRAM)
-  VirtualMemoryTable[Index].PhysicalBase = BLUEFIELD_REMAP_BASE;
-  VirtualMemoryTable[Index].VirtualBase  = BLUEFIELD_REMAP_BASE;
-  VirtualMemoryTable[Index].Length       = BLUEFIELD_REMAP_SZ;
-
-  if (FeaturePcdGet(PcdNorFlashRemapping) == FALSE) {
-    // Map the NOR Flash as Secure Memory
-    if (FeaturePcdGet(PcdCacheEnable) == TRUE) {
-      VirtualMemoryTable[Index].Attributes   = DDR_ATTRIBUTES_CACHED;
-    } else {
-      VirtualMemoryTable[Index].Attributes   = DDR_ATTRIBUTES_UNCACHED;
-    }
-  } else {
-    // DRAM mapping
-    VirtualMemoryTable[Index].Attributes   = CacheAttributes;
-  }
-
   // UARTs and other rshim peripherals.
-  VirtualMemoryTable[++Index].PhysicalBase = BLUEFIELD_RSHIM_BASE;
+  VirtualMemoryTable[Index].PhysicalBase = BLUEFIELD_RSHIM_BASE;
   VirtualMemoryTable[Index].VirtualBase  = BLUEFIELD_RSHIM_BASE;
   VirtualMemoryTable[Index].Length       = BLUEFIELD_RSHIM_SZ;
   VirtualMemoryTable[Index].Attributes   = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
