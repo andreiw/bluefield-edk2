@@ -1,6 +1,6 @@
 [000h 0000   4]                    Signature : "SPCR"    [Serial Port Console Redirection table]
 [004h 0004   4]                 Table Length : 00000050
-[008h 0008   1]                     Revision : 01
+[008h 0008   1]                     Revision : 02
 [009h 0009   1]                     Checksum : 00
 [00Ah 0010   6]                       Oem ID : "MLNXT."
 [010h 0016   8]                 Oem Table ID : "MLX-BFFF"
@@ -15,7 +15,7 @@
 [028h 0040   1]                     Space ID : 00 [SystemMemory]
 [029h 0041   1]                    Bit Width : 20
 [02Ah 0042   1]                   Bit Offset : 00
-[02Bh 0043   1]         Encoded Access Width : 04 [DWord Access:32]
+[02Bh 0043   1]         Encoded Access Width : 03 [DWord Access:32]
 [02Ch 0044   8]                      Address : 1800000
 
 [034h 0052   1]               Interrupt Type : 08
