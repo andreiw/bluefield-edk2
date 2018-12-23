@@ -87,6 +87,7 @@
   gEfiDevicePathFromTextProtocolGuid
   gEfiDevicePathToTextProtocolGuid
   gEfiRamDiskProtocolGuid
+  gEfiPciRootBridgeIoProtocolGuid
 
 [BuildOptions]
   XCODE:*_*_*_CC_FLAGS = -DEFI_VARIABLE_SIMULATE_OUTAGE

@@ -14,6 +14,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 
 #include "BdsPlatform.h"
+#include <Protocol/PciRootBridgeIo.h>
 
 ///
 /// Predefined platform default time out value
@@ -45,6 +46,127 @@ PlatformBdsInit (
   VOID
   )
 {
+}
+
+/**
+  Check if the handle satisfies a particular condition.
+
+  @param[in] Handle      The handle to check.
+  @param[in] ReportText  A caller-allocated string passed in for reporting
+                         purposes. It must never be NULL.
+
+  @retval TRUE   The condition is satisfied.
+  @retval FALSE  Otherwise. This includes the case when the condition could not
+                 be fully evaluated due to an error.
+**/
+typedef
+BOOLEAN
+(EFIAPI *FILTER_FUNCTION) (
+  IN EFI_HANDLE   Handle,
+  IN CONST CHAR16 *ReportText
+  );
+
+/**
+  Process a handle.
+
+  @param[in] Handle      The handle to process.
+  @param[in] ReportText  A caller-allocated string passed in for reporting
+                         purposes. It must never be NULL.
+**/
+typedef
+VOID
+(EFIAPI *CALLBACK_FUNCTION)  (
+  IN EFI_HANDLE   Handle,
+  IN CONST CHAR16 *ReportText
+  );
+
+/**
+  Locate all handles that carry the specified protocol, filter them with a
+  callback function, and pass each handle that passes the filter to another
+  callback.
+
+  @param[in] ProtocolGuid  The protocol to look for.
+
+  @param[in] Filter        The filter function to pass each handle to. If this
+                           parameter is NULL, then all handles are processed.
+
+  @param[in] Process       The callback function to pass each handle to that
+                           clears the filter.
+**/
+STATIC
+VOID
+FilterAndProcess (
+  IN EFI_GUID          *ProtocolGuid,
+  IN FILTER_FUNCTION   Filter         OPTIONAL,
+  IN CALLBACK_FUNCTION Process
+  )
+{
+  EFI_STATUS Status;
+  EFI_HANDLE *Handles;
+  UINTN      NoHandles;
+  UINTN      Idx;
+
+  Status = gBS->LocateHandleBuffer (ByProtocol, ProtocolGuid,
+                  NULL /* SearchKey */, &NoHandles, &Handles);
+  if (EFI_ERROR (Status)) {
+    //
+    // This is not an error, just an informative condition.
+    //
+    DEBUG ((EFI_D_VERBOSE, "%a: %g: %r\n", __FUNCTION__, ProtocolGuid,
+      Status));
+    return;
+  }
+
+  ASSERT (NoHandles > 0);
+  for (Idx = 0; Idx < NoHandles; ++Idx) {
+    CHAR16        *DevicePathText;
+    STATIC CHAR16 Fallback[] = L"<device path unavailable>";
+
+    //
+    // The ConvertDevicePathToText() function handles NULL input transparently.
+    //
+    DevicePathText = ConvertDevicePathToText (
+                       DevicePathFromHandle (Handles[Idx]),
+                       FALSE, // DisplayOnly
+                       FALSE  // AllowShortcuts
+                       );
+    if (DevicePathText == NULL) {
+      DevicePathText = Fallback;
+    }
+
+    if (Filter == NULL || Filter (Handles[Idx], DevicePathText)) {
+      Process (Handles[Idx], DevicePathText);
+    }
+
+    if (DevicePathText != Fallback) {
+      FreePool (DevicePathText);
+    }
+  }
+  FreePool (Handles);
+}
+
+/**
+  This CALLBACK_FUNCTION attempts to connect a handle non-recursively, asking
+  the matching driver to produce all first-level child handles.
+**/
+STATIC
+VOID
+EFIAPI
+Connect (
+  IN EFI_HANDLE   Handle,
+  IN CONST CHAR16 *ReportText
+  )
+{
+  EFI_STATUS Status;
+
+  Status = gBS->ConnectController (
+                  Handle, // ControllerHandle
+                  NULL,   // DriverImageHandle
+                  NULL,   // RemainingDevicePath -- produce all children
+                  FALSE   // Recursive
+                  );
+  DEBUG ((EFI_ERROR (Status) ? EFI_D_ERROR : EFI_D_VERBOSE, "%a: %s: %r\n",
+    __FUNCTION__, ReportText, Status));
 }
 
 STATIC
@@ -316,6 +438,18 @@ PlatformBdsPolicyBehavior (
   // Show the splash screen.
   //
   EnableQuietBoot (PcdGetPtr (PcdLogoFile));
+
+  //
+  // Connect PCIe bus.
+  //
+  // Note: this is not a recursive connect.
+  //
+  // This will produce a number of child handles with PciIo on
+  // them. But more importantly, this will configure bridge and
+  // EP resources, ensuring firmware leaves the PCIe hierarchy
+  // completely configured for the OS.
+  //
+  FilterAndProcess (&gEfiPciRootBridgeIoProtocolGuid, NULL, Connect);
 
   //
   // Create the default boot option based on the PcdDefault and the
