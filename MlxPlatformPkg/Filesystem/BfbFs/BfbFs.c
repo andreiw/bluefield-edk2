@@ -244,16 +244,16 @@ BfbFileToId (
   // and if you change the other filenames, you'll need to change the command
   // line passed to the Linux kernel.
   STATIC CONST struct FileToId FileToId[] = {
-    { L"initramfs", 64 },
-    { L"Image", 63 },
-    { L"UefiTests", 62 },
-    { L"BootTimeOut", 61 },
-    { L"ramdisk", 60 },
-    { L"BootArgument", 59 },
-    { L"BootDevicePath", 58 },
-    { L"BootDescription", 57 },
-    { L"BootDtb", 56 },
-    { L"BootAcpi", 55 },
+    { L"initramfs", 54 },
+    { L"Image", 53 },
+    { L"UefiTests", 52 },
+    { L"BootTimeOut", 51 },
+    { L"ramdisk", 50 },
+    { L"BootArgument", 49 },
+    { L"BootDevicePath", 48 },
+    { L"BootDescription", 47 },
+    { L"BootDtb", 46 },
+    { L"BootAcpi", 45 },
     { NULL, 0 },
   };
 
