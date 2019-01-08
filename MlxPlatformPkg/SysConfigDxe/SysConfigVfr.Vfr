@@ -35,6 +35,15 @@ formset
               maxsize  = 20,
     endpassword;
 
+    // Choose SPCR port.
+    oneof varid = SysCfg.SPCRPort,
+              prompt     = STRING_TOKEN(STR_SPCR_PROMPT),
+              help       = STRING_TOKEN(STR_SPCR_HELP),
+              flags      = NUMERIC_SIZE_1 | INTERACTIVE | RESET_REQUIRED,
+              option text = STRING_TOKEN(STR_SPCR_PORT0), value = 0, flags = DEFAULT;
+              option text = STRING_TOKEN(STR_SPCR_PORT1), value = 1, flags = 0;
+    endoneof;
+
     // Enable/Disable SMMU
     checkbox varid = SysCfg.EnableSmmu,
               prompt     = STRING_TOKEN(STR_SMMU_PROMPT),

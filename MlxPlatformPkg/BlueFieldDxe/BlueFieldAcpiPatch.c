@@ -18,6 +18,7 @@
 #include "BlueFieldInternal.h"
 #include "BlueFieldPlatform.h"
 #include "../AcpiTables/Iort.h"
+#include <IndustryStandard/SerialPortConsoleRedirectionTable.h>
 #include "rsh_def.h"
 #include "../../../AcpiTables/AcpiTables/OUTPUT/Dsdt.offset.h"
 
@@ -151,12 +152,16 @@ BlueFieldAcpiCheck (
     // Return FALSE here to skip the PCI table if needed.
     break;
 
-  case EFI_ACPI_MLNX_OEM_TABLE_ID_SPCR:
-    //
-    // Possibly patch in the future if required.
-    //
-    break;
+  case EFI_ACPI_MLNX_OEM_TABLE_ID_SPCR: {
+    EFI_ACPI_SERIAL_PORT_CONSOLE_REDIRECTION_TABLE *Spcr = (VOID *) AcpiHeader;
 
+    if (MlnxSysConfig.SPCRPort == 0) {
+      Spcr->BaseAddress.Address = BLUEFIELD_UART0_BASE;
+    } else {
+      Spcr->BaseAddress.Address = BLUEFIELD_UART1_BASE;
+    }
+    break;
+  }
   case EFI_ACPI_MLNX_OEM_TABLE_ID_IORT: {
     EFI_ACPI_6_1_IORT_STRUCTURE *Iort;
 

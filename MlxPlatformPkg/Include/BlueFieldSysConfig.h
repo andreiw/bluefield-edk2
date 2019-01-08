@@ -50,8 +50,11 @@ typedef struct {      // Total 64 bytes
   // Enable the second eMMC card
   BOOLEAN          EnableEmmc1;
 
+  // SPCR UART#.
+  UINT8            SPCRPort;
+
   // Reserved space
-  UINT8            Reserved[41];
+  UINT8            Reserved[40];
 } SYS_CONFIG;
 #pragma pack()
 

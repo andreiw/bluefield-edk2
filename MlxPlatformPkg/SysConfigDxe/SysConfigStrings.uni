@@ -27,6 +27,11 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #string STR_PASSWORD_INCORRECT                    #language en-US  "     Incorrect Password!     "
 #string STR_PASSWORD_MISMATCH                     #language en-US  "    The Password Mismatch!    "
 
+#string STR_SPCR_PROMPT                           #language en-US  "Select SPCR UART"
+#string STR_SPCR_HELP                             #language en-US  "Choose OS Boot Console"
+#string STR_SPCR_PORT0                            #language en-US  "Port 0 (BMC IPMI)"
+#string STR_SPCR_PORT1                            #language en-US  "Port 1 (RJ45)"
+
 #string STR_SMMU_PROMPT                           #language en-US  "Enable SMMU"
 #string STR_SMMU_HELP                             #language en-US  "Enable/Disable the SMMU"
 
