@@ -529,21 +529,22 @@ GetResourceFromDevice (
 
     case PciBarTypeIo16:
     case PciBarTypeIo32:
+      if (!PcdGetBool(PcdPciIgnoreIo)) {
+        Node = CreateResourceNode (
+                PciDev,
+                (PciDev->PciBar)[Index].Length,
+                (PciDev->PciBar)[Index].Alignment,
+                Index,
+                PciBarTypeIo16,
+                PciResUsageTypical
+                );
 
-      Node = CreateResourceNode (
-              PciDev,
-              (PciDev->PciBar)[Index].Length,
-              (PciDev->PciBar)[Index].Alignment,
-              Index,
-              PciBarTypeIo16,
-              PciResUsageTypical
-              );
-
-      InsertResourceNode (
-        IoNode,
-        Node
-        );
-      ResourceRequested = TRUE;
+        InsertResourceNode (
+          IoNode,
+          Node
+          );
+        ResourceRequested = TRUE;
+      }
       break;
 
     case PciBarTypeUnknown:

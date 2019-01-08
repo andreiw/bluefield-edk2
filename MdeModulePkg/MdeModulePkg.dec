@@ -1325,6 +1325,12 @@
   # @Prompt Disable full PCI enumeration.
   gEfiMdeModulePkgTokenSpaceGuid.PcdPciDisableBusEnumeration|FALSE|BOOLEAN|0x10000048
 
+  ## Indicates if I/O BARs are to be ignored.<BR><BR>
+  #   TRUE  - Ignore I/O BARs.<BR>
+  #   FALSE - Don't ignore I/O BARs.<BR>
+  # @Prompt Ignore I/O BARs for PCI device configuration.
+  gEfiMdeModulePkgTokenSpaceGuid.PcdPciIgnoreIo|FALSE|BOOLEAN|0x10000049
+
   ## Disk I/O - Number of Data Buffer block.
   # Define the size in block of the pre-allocated buffer. It provide better
   # performance for large Disk I/O requests.

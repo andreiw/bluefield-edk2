@@ -380,6 +380,7 @@
 
   # PCI support.
   gEfiMdeModulePkgTokenSpaceGuid.PcdPciDisableBusEnumeration|FALSE
+  gEfiMdeModulePkgTokenSpaceGuid.PcdPciIgnoreIo|TRUE
   gArmPlatformTokenSpaceGuid.PcdPciBusMin|0x0
   gArmPlatformTokenSpaceGuid.PcdPciBusMax|0x7e
   gArmPlatformTokenSpaceGuid.PcdPciIoBase|0x0
