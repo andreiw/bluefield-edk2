@@ -131,6 +131,9 @@
   # USB
   UefiUsbLib|MdePkg/Library/UefiUsbLib/UefiUsbLib.inf
 
+  # SCSI
+  UefiScsiLib|MdePkg/Library/UefiScsiLib/UefiScsiLib.inf
+
   #
   # Secure Boot dependencies
   #
