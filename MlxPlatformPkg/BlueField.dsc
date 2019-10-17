@@ -323,6 +323,12 @@
   MlxPlatformPkg/SysConfigDxe/SysConfigDxe.inf
 
   #
+  # SMBIOS
+  #
+  MlxPlatformPkg/PlatformSmbiosDxe/PlatformSmbiosDxe.inf
+  MdeModulePkg/Universal/SmbiosDxe/SmbiosDxe.inf
+
+  #
   # USB support (i.e. for plug-in xHCI host).
   #
   MdeModulePkg/Bus/Pci/XhciDxe/XhciDxe.inf

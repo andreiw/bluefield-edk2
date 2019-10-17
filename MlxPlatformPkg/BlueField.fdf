@@ -268,6 +268,12 @@ READ_LOCK_STATUS   = TRUE
   INF MlxPlatformPkg/SysConfigDxe/SysConfigDxe.inf
 
   #
+  # SMBIOS
+  #
+  INF MlxPlatformPkg/PlatformSmbiosDxe/PlatformSmbiosDxe.inf
+  INF MdeModulePkg/Universal/SmbiosDxe/SmbiosDxe.inf
+
+  #
   # UEFI application (Shell Embedded Boot Loader)
   #
   INF ShellBinPkg/UefiShell/UefiShell.inf
